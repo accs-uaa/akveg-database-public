@@ -37,8 +37,12 @@ The Bureau of Land Management, National Park Service, Alaska Department of Fish 
 
 ### Usage Requirements
 
-None
+None. Citing the database is not required to use the data; however, you can cite the AKVEG database as:
+
+Nawrocki, T.W. 2021. Alaska Vegetation Plots Database (AKVEG). Git Repository. Available: https://github.com/accs-uaa/vegetation-plots-database
+
+We recommend citing the individual projects from which data are used.
 
 ### License
 
-This repository and its contents are licensed under Creative Commons Attribution-Share Alike.
+This project is provided under the GNU General Public License v3.0. It is free to use and modify in part or in whole.
