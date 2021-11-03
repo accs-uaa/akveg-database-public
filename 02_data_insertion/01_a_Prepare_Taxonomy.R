@@ -137,7 +137,9 @@ hierarchy_table = taxonomy_data %>%
   filter(level == 'genus' |
            level == 'unknown') %>%
   filter(status_adjudicated == 'accepted' |
-           status_adjudicated == 'provisional') %>%
+           status_adjudicated == 'historic' |
+           status_adjudicated == 'taxonomy unresolved' |
+           status_adjudicated == 'location unresolved') %>%
   mutate(name_accepted = case_when(level == 'unknown' ~ 'Unknown',
                                  TRUE ~ name_accepted)) %>%
   distinct(name_accepted, .keep_all = TRUE) %>%
@@ -155,7 +157,9 @@ write.csv(hierarchy_table, file = csv_hierarchy, fileEncoding = 'UTF-8', row.nam
 # Parse taxon accepted table
 accepted_table = taxonomy_data %>%
   filter(status_adjudicated == 'accepted' |
-           status_adjudicated == 'provisional') %>%
+           status_adjudicated == 'historic' |
+           status_adjudicated == 'taxonomy unresolved' |
+           status_adjudicated == 'location unresolved') %>%
   left_join(author_table, by = c('auth_accepted' = 'author')) %>%
   separate(name_accepted, c('genus_accepted'), extra = 'drop', sep = '([ ])', remove = FALSE) %>%
   mutate(genus_accepted = case_when(level == 'unknown' ~ 'Unknown',

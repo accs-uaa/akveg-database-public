@@ -2,7 +2,7 @@
 -- ---------------------------------------------------------------------------
 -- Insert project status
 -- Author: Timm Nawrocki, Alaska Center for Conservation Science
--- Last Updated: 2021-03-08
+-- Last Updated: 2021-10-28
 -- Usage: Script should be executed in a PostgreSQL 12 database.
 -- Description: "Insert project status" pushes the project status metadata for all projects into the project status table of the database.
 -- ---------------------------------------------------------------------------
@@ -14,7 +14,7 @@ START TRANSACTION;
 INSERT INTO project_status (project_status_id, project_id, project_modified, site_modified, cover_modified, environment_modified, modified_by_id) VALUES
 (1, 1, '2021-02-02', '2021-02-02', '2021-02-02', '2021-02-02', 80),
 (2, 2, '2021-02-02', '2021-02-02', '2021-02-02', NULL, 80),
-(3, 3, '2021-02-02', '2021-02-02', '2021-02-02', NULL, 80),
+(3, 3, '2021-02-02', '2021-02-02', '2021-10-28', NULL, 80),
 (4, 4, '2021-02-02', '2021-02-02', '2021-03-08', '2021-02-02', 80),
 (5, 5, '2021-02-02', '2021-02-02', '2021-02-02', NULL, 80),
 (6, 6, '2021-02-02', '2021-02-02', '2021-03-08', '2021-02-02', 80),

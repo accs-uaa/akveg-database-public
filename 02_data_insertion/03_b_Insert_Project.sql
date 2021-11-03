@@ -2,7 +2,7 @@
 -- ---------------------------------------------------------------------------
 -- Insert project metadata
 -- Author: Timm Nawrocki, Alaska Center for Conservation Science
--- Last Updated: 2021-02-02
+-- Last Updated: 2021-10-28
 -- Usage: Script should be executed in a PostgreSQL 12 database.
 -- Description: "Insert project metadata" pushes the metadata for all projects into the project table of the database.
 -- ---------------------------------------------------------------------------
@@ -31,7 +31,7 @@ INSERT INTO project (project_id, originator_id, funder_id, manager_id, project_n
 (17, 2, 3, 80, 'Bristol Bay Vegetation Cover', 'ACCS Bristol Bay VC', 1, 2019, 2019, 'Vegetation plots with focus towards likely moose habitat for development of species- or aggregate-level foliar cover maps.'),
 (18, 2, 2, 80, 'Vegetation Mapping of North American Beringia', 'ACCS Beringia VC', 2, 2019, NULL, 'Vegetation plots collected for development of species- or aggregate-level foliar cover maps and other quantitative vegetation maps of North American Beringia.'),
 (19, 2, 7, 40, 'Landcover Classes, Ecological Systems, and Plant Associations of Kenai Fjords National Park', 'NPS Kenai Fjords LC', 1, 2004, 2008, 'Ground and aerial plots collected for the creation of a land cover map and plant associations for Kenai Fjords National Park.'),
-(20, 2, 7, 40, 'Landcover Classes and Plant Associations for Glacier Bay National Park and Preserve', 'NPS Glacier Bay LC', 1, 2001, 2008, 'Ground plots collected for the creation of a land cover map and plant associations for Kenai Fjords National Park.'),
+(20, 2, 7, 40, 'Landcover Classes and Plant Associations for Glacier Bay National Park and Preserve', 'NPS Glacier Bay LC', 1, 2001, 2008, 'Ground plots collected for the creation of a land cover map and plant associations for Glacier Bay National Park and Preserve.'),
 (21, 2, 7, 81, 'Klondike Gold Rush National Park Land Cover', 'NPS Klondike LC', 1, 2011, 2012, 'Ground plots collected for the creation of a land cover map and plant associations for Klondike Gold Rush National Park.'),
 (22, 2, 7, 46, 'Landcover Classes of Sitka National Historic Park', 'NPS Sitka LC', 1, 2011, 2013, 'Ground plots collected for the creation of a land cover map for Sitka National Historic Park.'),
 (23, 7, 7, 83, 'Katmai Bear Habitat', 'Katmai Bear', 1, 1993, 1998, 'Data for 495 plots were collected by Dr. Tom Smith (USGS Biological Resource Division) and crew for the Katmai National Park Land Cover Classification Project and Brown Bear Habitat Analysis.'),

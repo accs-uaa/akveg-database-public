@@ -2,7 +2,7 @@
 -- ---------------------------------------------------------------------------
 -- Insert environment data
 -- Author: Timm Nawrocki, Alaska Center for Conservation Science
--- Last Updated: 2021-02-02
+-- Last Updated: 2021-10-28
 -- Usage: Script should be executed in a PostgreSQL 12 database.
 -- Description: "Insert environment data" pushes all environment data into the environment table of the database.
 -- ---------------------------------------------------------------------------
