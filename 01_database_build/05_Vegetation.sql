@@ -24,7 +24,7 @@ CREATE TABLE cover (
     veg_recorder_id smallint REFERENCES personnel,
     cover_type_id smallint NOT NULL REFERENCES cover_type,
     name_original varchar(120) NOT NULL,
-    adjudicated_id integer NOT NULL REFERENCES taxon_adjudicated,
+    code varchar(15) NOT NULL REFERENCES taxon_all,
     cover decimal(6,3) NOT NULL
 );
 
