@@ -1,47 +1,73 @@
 # Alaska Vegetation Plots Database
-Alaska Vegetation Plots Database (AKVEG) scripts to compile database from quality controlled source data and enable database replication.
+Alaska Vegetation Plots Database (AKVEG) scripts to query public data stored in the AKVEG Database.
 
 ## Getting Started
 
-These instructions will enable you to load a new instance or updated instance of the Alaska Vegetation Plots Database (AKVEG) into a PostgreSQL 12.4+ server. The database was designed for PostgreSQL. Instructions are not provided for loading the database into other SQL platforms; however, advanced users can modify the replication scripts to create the database in other SQL platforms as well. The instructions included in this readme file will also enable you to construct an empty vegetation plots database for management of other data.
+These instructions will enable you to query public data in the Alaska Vegetation Plots Database (AKVEG). The AKVEG Database is built in PostgreSQL and hosted on a cloud server that can be queried in numerous ways. This repository provides example scripts to query the database in Python and R.
+
+To query the database, you will need server credentials. Please contact [Amanda Droghini](mailto:adroghini@alaska.edu), the data manager for the AKVEG Database, to request server credentials. The database is public and access is free; the purpose of the server credentials is to prevent excessive loads on the server and to maintain knowledge of how many people are connecting.
 
 ### Prerequisites
-1. PostgreSQL 12.4+
+1. Python 3.9+
+   1. psycopg2
+   2. pandas
+   3. geopandas
+   4. os
+   5. [akutils](https://github.com/accs-uaa/akutils)
+
 2. R 4.0.0+
+   1. dplyr
+   2. fs
+   3. janitor
+   4. lubridate
+   5. readr
+   6. readxl
+   7. RPostgres
+   8. sf
+   9. stringr
+   10. terra
+   11. tibble
+   12. tidyr
 
-### Installing Database
 
-Install a PostgreSQL 12.4+ server either on localhost or at a remote location that you control. See documentation from database software for installation and set up help.
+### Preparing credentials
 
-To build a replicate copy of AKVEG, run all scripts in the **local_replication** folder in the numerical order associated with the script names in a SQL interpreter configured to access your database server. The resulting vegetation database will be identical to the version available online at [https://akveg.uaa.alaska.edu](https://akveg.uaa.alaska.edu). To build an empty version of AKVEG (the database structure with no data loaded into it) run the **Build** scripts located in the **structure_metadata** folder in the numeric order associated with the script names. Building an empty database will enable population with new data. To process new data into the database, use the R scripts in the **data_preparation** folder to create SQL Insert statements from quality controlled source data.
+Once you have received server credentials from the data manager, you will need to unzip the credentials in a location accessible to your script environment. The credentials include a csv file. In that csv file, you will need to update the file paths for the following rows: 9 (sslrootcert), 10 (sslcert), and 11 (sslkey).
 
-## Usage
+### Preparing files for example scripts
 
-AKVEG can be interacted with via SQL queries in a SQL interpreter, through Python or R with PostgreSQL connection packages, or through ArcGIS Pro facilitated by Python. The database schema and data dictionary show users the structure of the database for the purpose of querying data or entering new data.
+The example scripts use three input files that are not included in this repository. When requesting credentials from the data manager, we will provide the input files as well.
+
+- domain_input ('region_data/AlaskaYukon_MapDomain_3338.shp'): A shapefile containing the spatial domain of the AKVEG Map, which is the focal area of data integration and taxonomy for the AKVEG Database.
+- zone_input ()'region_data/AlaskaYukon_VegetationZones_v1.1_3338.shp'): A shapefile containing features for major biomes and vegetation zones of Alaska & Yukon.
+- fireyear_input ('ancillary_data/AlaskaYukon_FireYear_10m_3338.tif'): A 10 m raster dataset of most recent burn year from 1940 to 2023 where zero indicates that no burn was documented during that time frame.
+
+These files are provided for the purpose of providing examples for how to relate the data in the AKVEG Database to other geospatial data. These data are not required to use or access data in the AKVEG Database. To run the example scripts with the example data included, the example data must be unzipped to a location accessible to your script environment. 
 
 ## Credits
 
 ### Built With
-* PostgreSQL 12.4
+* PostgreSQL 17
 * DataGrip 2020.2.1
 * R 4.0.2
 * RStudio 1.3.1073
+* Python 3.12
+* PyCharm
 
 ### Authors
 
 * **Timm Nawrocki** - *Alaska Center for Conservation Science, University of Alaska Anchorage*
+* **Amanda Droghini** - *Alaska Center for Conservation Science, University of Alaska Anchorage*
 
 ### Support
 
-The Bureau of Land Management, National Park Service, Alaska Department of Fish & Game, and U.S. Forest Service provided funding in support of the development of the AKVEG database to reconcile multi-format, multi-agency, multi-method vegetation survey and monitoring data.
+The U.S. Fish & Wildlife Service, Bureau of Land Management, National Park Service, U.S. Forest Service, Alaska Department of Fish & Game, and Alaska Department of Natural Resources provided funding in support of the development of the AKVEG Database.
 
 ### Usage Requirements
 
-None. Citing the database is not required to use the data; however, you can cite the AKVEG database as:
+Citing the database is not required to use the data as all data are public. Where a citation is sensible, we would appreciate you citing the AKVEG Database as follows:
 
-Nawrocki, T.W. 2021. Alaska Vegetation Plots Database (AKVEG). Git Repository. Available: https://github.com/accs-uaa/vegetation-plots-database
-
-We recommend citing the individual projects from which data are used.
+*Citation is forthcoming in the future. For now, please contact the data manager for information on citing the AKVEG Database.*
 
 ### License
 
