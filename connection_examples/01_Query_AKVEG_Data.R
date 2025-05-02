@@ -2,12 +2,12 @@
 # ---------------------------------------------------------------------------
 # Query data from AKVEG Database
 # Author: Timm Nawrocki, Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2025-04-13
+# Last Updated: 2025-05-01
 # Usage: Script should be executed in R 4.4.3+.
-# Description: "Query data from AKVEG Database" is an example script to pull data for the ACCS Nelchina project from the AKVEG Database for all available tables.
+# Description: "Query data from AKVEG Database" is an example script to pull data from the AKVEG Database for all available, non-metadata tables. The script connects to the AKVEG database, executes queries, and performs simple spatial analyses (i.e., subset the data to specific study areas, extract raster values to surveyed plots). The outputs are a series of CSV files (one for each non-metadata table in the database) whose results are restricted to the study area in the script.
 # ---------------------------------------------------------------------------
 
-# Import required libraries
+# Import required libraries ----
 library(dplyr)
 library(fs)
 library(janitor)
@@ -21,8 +21,7 @@ library(terra)
 library(tibble)
 library(tidyr)
 
-#### SET UP DIRECTORIES AND FILES
-####------------------------------
+#### Set up directories and files ------------------------------
 
 # Set root directory (modify to your folder structure)
 drive = 'C:'
@@ -32,7 +31,7 @@ root_folder = 'ACCS_Work'
 database_repository = path(drive, root_folder, 'Repositories/akveg-database-public')
 credentials_folder = path(drive, root_folder, 'Example/Credentials/akveg_public_read')
 input_folder = path(drive, root_folder, 'Example/Data_Input')
-output_folder = path(input_folder, 'plot_data')
+output_folder = path(drive, root_folder, 'Example/Data_Output', 'plot_data')
 
 # Define input files
 domain_input = path(input_folder, 'region_data/AlaskaYukon_MapDomain_3338.shp')
@@ -69,7 +68,7 @@ environment_file = path(database_repository, 'queries/12_environment.sql')
 soilmetrics_file = path(database_repository, 'queries/13_soil_metrics.sql')
 soilhorizons_file = path(database_repository, 'queries/14_soil_horizons.sql')
 
-# Read local data
+# Read local data ----
 domain_shape = st_read(domain_input)
 zone_shape = st_read(zone_input)
 fireyear_raster = rast(fireyear_input)
@@ -85,8 +84,7 @@ fireyear_raster = rast(fireyear_input)
 intersect_geometry = st_geometry(zone_shape[zone_shape$zone == 'Arctic Northern'
                                             | zone_shape$zone == 'Arctic Western',])
 
-#### QUERY AKVEG DATABASE
-####------------------------------
+#### Query AKVEG database ------------------------------
 
 # Import database connection function
 connection_script = path(database_repository, 'pull_functions', 'connect_database_postgresql.R')
@@ -133,6 +131,7 @@ site_visit_data = as_tibble(dbGetQuery(database_connection, site_visit_query)) %
 st_write(site_visit_data, site_point_output, append = FALSE) # Optional to check point selection in a GIS
 
 # Write where statement for site visits
+## Apply site visit codes obtained in the spatial intersection above to the SQL queries to restrict data from other tables to only those sites that are within the area of interest 
 input_sql = site_visit_data %>%
   # Drop geometry
   st_drop_geometry() %>%
@@ -213,29 +212,29 @@ project_check = vegetation_data %>%
   group_by(prjct_cd) %>%
   summarize(obs_n = n())
 
-# Export data to csv files
+# Export data to csv files ----
 taxa_data %>%
-  write.csv(., file = taxa_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = taxa_output)
 project_data %>%
-  write.csv(., file = project_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = project_output)
 site_visit_data %>%
   st_drop_geometry() %>%
-  write.csv(., file = site_visit_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = site_visit_output)
 vegetation_data %>%
-  write.csv(., file = vegetation_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = vegetation_output)
 abiotic_data %>%
-  write.csv(., file = abiotic_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = abiotic_output)
 tussock_data %>%
-  write.csv(., file = tussock_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = tussock_output)
 ground_data %>%
-  write.csv(., file = ground_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = ground_output)
 structural_data %>%
-  write.csv(., file = structural_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = structural_output)
 shrub_data %>%
-  write.csv(., file = shrub_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = shrub_output)
 environment_data %>%
-  write.csv(., file = environment_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = environment_output)
 soilmetrics_data %>%
-  write.csv(., file = soilmetrics_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = soilmetrics_output)
 soilhorizons_data %>%
-  write.csv(., file = soilhorizons_output, fileEncoding = 'UTF-8', row.names = FALSE)
+  write_csv(., file = soilhorizons_output)
