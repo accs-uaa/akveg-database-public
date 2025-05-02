@@ -44,6 +44,16 @@ The example scripts use three input files that are not included in this reposito
 
 These files are provided for the purpose of providing examples for how to relate the data in the AKVEG Database to other geospatial data. These data are not required to use or access data in the AKVEG Database. To run the example scripts with the example data included, the example data must be unzipped to a location accessible to your script environment. 
 
+## Column aliases
+
+The queries employ shorthand codes for many of the column names for compatibility with ArcGIS field names (used in the example scripts). Please refer to the individual queries for the non-aliased column names used in the AKVEG database. We recommend using these names (rather than the aliases) if compatibility with ArcGIS is not required since they are more descriptive and human-readable.
+
+## Metadata tables
+
+The AKVEG database contains two metadata tables that are likely to be useful to users:
+1. database_schema: Information on the structure of the database.
+2. database_dictionary: List and definitions of constrained values.
+
 ## Credits
 
 ### Built With
