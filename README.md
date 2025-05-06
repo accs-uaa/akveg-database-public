@@ -1,9 +1,9 @@
-# Alaska Vegetation Plots Database
-Alaska Vegetation Plots Database (AKVEG) scripts to query public data stored in the AKVEG Database.
+# Alaska Vegetation Database
+Scripts to query public data stored in the Alaska Vegetation (AKVEG) Database.
 
 ## Getting Started
 
-These instructions will enable you to query public data in the Alaska Vegetation Plots Database (AKVEG). The AKVEG Database is built in PostgreSQL and hosted on a cloud server that can be queried in numerous ways. This repository provides example scripts to query the database in Python and R.
+These instructions will enable you to query public data in the Alaska Vegetation (AKVEG) Database. The AKVEG Database is built in PostgreSQL and hosted on a cloud server that can be queried in numerous ways. This repository provides example scripts to query the database in Python and R.
 
 To query the database, you will need server credentials. Please contact [Amanda Droghini](mailto:adroghini@alaska.edu), the data manager for the AKVEG Database, to request server credentials. The database is public and access is free; the purpose of the server credentials is to prevent excessive loads on the server and to maintain knowledge of how many people are connecting.
 
