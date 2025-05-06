@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Query data from AKVEG Database
 # Author: Timm Nawrocki, Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2025-05-01
+# Last Updated: 2025-05-06
 # Usage: Script should be executed in R 4.4.3+.
 # Description: "Query data from AKVEG Database" is an example script to pull data from the AKVEG Database for all available, non-metadata tables. The script connects to the AKVEG database, executes queries, and performs simple spatial analyses (i.e., subset the data to specific study areas, extract raster values to surveyed plots). The outputs are a series of CSV files (one for each non-metadata table in the database) whose results are restricted to the study area in the script.
 # ---------------------------------------------------------------------------
@@ -31,11 +31,11 @@ root_folder = 'ACCS_Work'
 database_repository = path(drive, root_folder, 'Repositories/akveg-database-public')
 credentials_folder = path(drive, root_folder, 'Example/Credentials/akveg_public_read')
 input_folder = path(drive, root_folder, 'Example/Data_Input')
-output_folder = path(drive, root_folder, 'Example/Data_Output', 'plot_data')
+output_folder = path(drive, root_folder, 'Example/Data_Input', 'plot_data')
 
 # Define input files
-domain_input = path(input_folder, 'region_data/AlaskaYukon_MapDomain_3338.shp')
-zone_input = path(input_folder, 'region_data/AlaskaYukon_VegetationZones_v1.1_3338.shp')
+domain_input = path(input_folder, 'region_data/AlaskaYukon_ProjectDomain_v2.0_3338.shp')
+region_input = path(input_folder, 'region_data/AlaskaYukon_Regions_v2.0_3338.shp')
 fireyear_input = path(input_folder, 'ancillary_data/AlaskaYukon_FireYear_10m_3338.tif')
 
 # Define output files
@@ -43,7 +43,6 @@ taxa_output = path(output_folder, '00_taxonomy.csv')
 project_output = path(output_folder, '01_project.csv')
 site_visit_output = path(output_folder, '03_site_visit.csv')
 site_point_output = path(output_folder, '03_site_point_3338.shp')
-site_buffer_output = path(output_folder, '03_site_buffer_3338.shp')
 vegetation_output = path(output_folder, '05_vegetation.csv')
 abiotic_output = path(output_folder, '06_abiotic_top_cover.csv')
 tussock_output = path(output_folder, '07_whole_tussock_cover.csv')
@@ -70,19 +69,19 @@ soilhorizons_file = path(database_repository, 'queries/14_soil_horizons.sql')
 
 # Read local data ----
 domain_shape = st_read(domain_input)
-zone_shape = st_read(zone_input)
+region_shape = st_read(region_input)
 fireyear_raster = rast(fireyear_input)
 
 # Get geometry for intersection (example to subset data by Boreal)
-#intersect_geometry = st_geometry(zone_shape[zone_shape$zone == 'Boreal Southern'
-#                                            | zone_shape$zone == 'Boreal Central'
-#                                            | zone_shape$zone == 'Boreal Northern'
-#                                            | zone_shape$zone == 'Boreal Western'
-#                                            | zone_shape$zone == 'Boreal Southwest',])
+#intersect_geometry = st_geometry(region_shape[region_shape$region == 'Alaska-Yukon Southern'
+#                                              | region_shape$region == 'Alaska-Yukon Central'
+#                                              | region_shape$region == 'Alaska-Yukon Northern'
+#                                              | region_shape$region == 'Alaska Western'
+#                                              | region_shape$region == 'Alaska Southwest',])
 
 # Get geometry for intersection (example to subset data by Arctic)
-intersect_geometry = st_geometry(zone_shape[zone_shape$zone == 'Arctic Northern'
-                                            | zone_shape$zone == 'Arctic Western',])
+intersect_geometry = st_geometry(region_shape[region_shape$region == 'Arctic Northern'
+                                              | region_shape$region == 'Arctic Western',])
 
 #### Query AKVEG database ------------------------------
 
@@ -102,7 +101,7 @@ taxa_data = as_tibble(dbGetQuery(database_connection, taxa_query))
 site_visit_query = read_file(site_visit_file)
 site_visit_data = as_tibble(dbGetQuery(database_connection, site_visit_query)) %>%
   # Convert geometries to points with EPSG:4269
-  st_as_sf(x = ., coords = c('long_dd', 'lat_dd'), crs = 4269, remove = FALSE) %>%
+  st_as_sf(x = ., coords = c('longitude_dd', 'latitude_dd'), crs = 4269, remove = FALSE) %>%
   # Reproject coordinates to EPSG 3338
   st_transform(crs = st_crs(3338)) %>%
   # Add EPSG:3338 centroid coordinates
@@ -113,35 +112,50 @@ site_visit_data = as_tibble(dbGetQuery(database_connection, site_visit_query)) %
   # Subset points to those within the target zone (example to subset using a feature class selection)
   st_intersection(intersect_geometry) %>%
   # Extract raster data to points
-  mutate(fire_yr = terra::extract(fireyear_raster, ., raw=TRUE)[,2]) %>%
+  mutate(fire_year = terra::extract(fireyear_raster, ., raw=TRUE)[,2]) %>%
   # Drop geometry
   st_zm(drop = TRUE, what = "ZM") %>%
   # Example filter by project code (uncomment line below)
-  #filter(prjct_cd == 'accs_nelchina_2023') %>%
+  #filter(project_code == 'accs_nelchina_2023') %>%
   # Example filter by observation year (uncomment line below)
-  #filter(year(obs_date) >= 2000) %>%
+  #filter(year(observe_date) >= 2000) %>%
   # Example filter by perspective (uncomment line below)
-  #filter(perspect == 'ground') %>%
+  #filter(perspective == 'ground') %>%
   # Select columns
-  dplyr::select(st_vst, prjct_cd, st_code, data_tier, obs_date, scp_vasc, scp_bryo, scp_lich,
-                perspect, cvr_mthd, strc_class, fire_yr, hmgneous, plt_dim_m,
-                lat_dd, long_dd, cent_x, cent_y, geometry)
+  dplyr::select(site_visit_code, project_code, site_code, data_tier, observe_date, scope_vascular, scope_bryophyte, scope_lichen,
+                perspective, cover_method, structural_class, fire_year, homogeneous, plot_dimensions_m,
+                latitude_dd, longitude_dd, cent_x, cent_y, geometry)
 
 # Export site visit data to shapefile
-st_write(site_visit_data, site_point_output, append = FALSE) # Optional to check point selection in a GIS
+site_visit_data %>%
+  # Rename fields so that they are within the character length limits
+  rename(st_vst = site_visit_code,
+         prjct_cd = project_code,
+         st_code = site_code,
+         obs_date = observe_date,
+         scp_vasc = scope_vascular,
+         scp_bryo = scope_bryophyte,
+         scp_lich = scope_lichen,
+         perspect = perspective,
+         cvr_mthd = cover_method,
+         strc_class = structural_class,
+         hmgneous = homogeneous,
+         plt_dim_m = plot_dimensions_m,
+         lat_dd = latitude_dd,
+         long_dd = longitude_dd) %>%
+  st_write(site_point_output, append = FALSE) # Optional to check point selection in a GIS
 
-# Write where statement for site visits
-## Apply site visit codes obtained in the spatial intersection above to the SQL queries to restrict data from other tables to only those sites that are within the area of interest 
+# Write where statement for site visits to apply site visit codes obtained in the spatial intersection above to the SQL queries to restrict data from other tables to only those sites that are within the area of interest 
 input_sql = site_visit_data %>%
   # Drop geometry
   st_drop_geometry() %>%
-  select(st_vst) %>%
+  select(site_visit_code) %>%
   # Format site visit codes
-  mutate(st_vst = paste('\'', st_vst, '\'', sep = '')) %>%
+  mutate(site_visit_code = paste('\'', site_visit_code, '\'', sep = '')) %>%
   # Collapse rows
-  summarize(st_vst=paste(st_vst,collapse=", ")) %>%
+  summarize(site_visit_code = paste(site_visit_code, collapse=", ")) %>%
   # Pull result out of dataframe
-  pull(st_vst)
+  pull(site_visit_code)
 where_statement = paste('\r\nWHERE site_visit.site_visit_code IN (',
                         input_sql,
                         ');',
@@ -152,7 +166,7 @@ project_query = read_file(project_file) %>%
   # Modify query with where statement
   str_replace(., ';', where_statement)
 project_data = as_tibble(dbGetQuery(database_connection, project_query)) %>%
-  arrange(prjct_cd)
+  arrange(project_code)
 
 # Read vegetation cover data from AKVEG Database for selected site visits
 vegetation_query = read_file(vegetation_file) %>%
@@ -208,8 +222,8 @@ soilhorizons_data = as_tibble(dbGetQuery(database_connection, soilhorizons_query
 
 # Check number of cover observations per project
 project_check = vegetation_data %>%
-  left_join(site_visit_data, join_by('st_vst')) %>%
-  group_by(prjct_cd) %>%
+  left_join(site_visit_data, join_by('site_visit_code')) %>%
+  group_by(project_code) %>%
   summarize(obs_n = n())
 
 # Export data to csv files ----

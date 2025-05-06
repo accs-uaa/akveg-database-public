@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Query data from AKVEG Database
 # Author: Timm Nawrocki, Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2025-04-13
+# Last Updated: 2025-05-06
 # Usage: Script should be executed in Python 3.12+. Requires psycopg2.
 # Description: "Compile data views" provides an example of compiling a set of data views for a user-specified region from the AKVEG Database.
 # ---------------------------------------------------------------------------
@@ -11,11 +11,12 @@
 import os
 import pandas as pd
 import geopandas as gpd
-from akutils import connect_database_postgresql # Optional (see below)
-from akutils import query_to_dataframe # Optional (see below)
+from akutils import connect_database_postgresql  # Optional (see below)
+from akutils import query_to_dataframe  # Optional (see below)
+
 # IF NOT USING AKUTILS, UNCOMMENT LINES BELOW (FOR IDE THAT AUTO-RECOGNIZES INIT FILE)
-#from pull_functions import connect_database_postgresql
-#from pull_functions import query_to_dataframe
+# from pull_functions import connect_database_postgresql
+# from pull_functions import query_to_dataframe
 
 #### SET UP DIRECTORIES AND FILES
 ####------------------------------
@@ -31,8 +32,8 @@ input_folder = os.path.join(drive, root_folder, 'Example/Data_Input')
 output_folder = os.path.join(input_folder, 'plot_data')
 
 # Define input files
-domain_input = os.path.join(input_folder, 'region_data/AlaskaYukon_MapDomain_3338.shp')
-zone_input = os.path.join(input_folder, 'region_data/AlaskaYukon_VegetationZones_v1.1_3338.shp')
+domain_input = os.path.join(input_folder, 'region_data/AlaskaYukon_ProjectDomain_v2.0_3338.shp')
+region_input = os.path.join(input_folder, 'region_data/AlaskaYukon_Regions_v2.0_3338.shp')
 fireyear_input = os.path.join(input_folder, 'ancillary_data/AlaskaYukon_FireYear_10m_3338.tif')
 
 # Define output files
@@ -66,16 +67,21 @@ soilhorizons_file = os.path.join(database_repository, 'queries/14_soil_horizons.
 
 # Read local data
 domain_shape = gpd.read_file(domain_input)
-zone_shape = gpd.read_file(zone_input)
+region_shape = gpd.read_file(region_input)
 
 # Get geometry for intersection (example to subset data by Boreal)
-#intersect_geometry = zone_shape[zone_shape['zone_short'].isin(
-#    ['Boreal Southern', 'Boreal Central', 'Boreal Northern', 'Boreal Western', 'Boreal Southwest']
+#intersect_geometry = region_shape[region_shape['region'].isin(
+#    ['Alaska-Yukon Southern',
+#     'Alaska-Yukon Central',
+#     'Alaska-Yukon Northern',
+#     'Alaska Western',
+#     'Alaska Southwest']
 #)]
 
 # Get geometry for intersection (example to subset data by Arctic)
-intersect_geometry = zone_shape[zone_shape['zone_short'].isin(
-    ['Arctic Northern', 'Arctic Western']
+intersect_geometry = region_shape[region_shape['region'].isin(
+    ['Arctic Northern',
+     'Arctic Western']
 )]
 
 #### QUERY AKVEG DATABASE
@@ -96,14 +102,14 @@ site_visit_read = open(site_visit_file, 'r')
 site_visit_query = site_visit_read.read()
 site_visit_read.close()
 site_visit_data = query_to_dataframe(database_connection, site_visit_query)
-site_visit_data['obs_datetime'] = pd.to_datetime(site_visit_data['obs_date'])
+site_visit_data['obs_datetime'] = pd.to_datetime(site_visit_data['observe_date'])
 site_visit_data['obs_year'] = site_visit_data['obs_datetime'].dt.year
 
 # Create geodataframe
 site_visit_data = gpd.GeoDataFrame(
     site_visit_data,
-    geometry=gpd.points_from_xy(site_visit_data.long_dd,
-                                site_visit_data.lat_dd),
+    geometry=gpd.points_from_xy(site_visit_data.longitude_dd,
+                                site_visit_data.latitude_dd),
     crs='EPSG:4269')
 
 # Convert geodataframe to EPSG:3338
@@ -120,28 +126,49 @@ site_visit_data = gpd.clip(site_visit_data, domain_shape)
 site_visit_data = gpd.clip(site_visit_data, intersect_geometry)
 
 # Example filter by project code (uncomment line below)
-#site_visit_data = site_visit_data[site_visit_data['prjct_cd'] == 'accs_nelchina_2023']
+# site_visit_data = site_visit_data[site_visit_data['project_code'] == 'accs_nelchina_2023']
 
 # Example filter by observation year (uncomment line below)
-#site_visit_data = site_visit_data[site_visit_data['obs_year'] >= 2000]
+# site_visit_data = site_visit_data[site_visit_data['obs_year'] >= 2000]
 
 # Example filter by perspective (uncomment line below)
-#site_visit_data = site_visit_data[site_visit_data['perspect'] == 'ground']
+# site_visit_data = site_visit_data[site_visit_data['perspective'] == 'ground']
 
 # Select columns
-site_visit_data = site_visit_data[['st_vst', 'prjct_cd', 'st_code', 'data_tier', 'obs_date','scp_vasc', 'scp_bryo', 'scp_lich', 'perspect', 'cvr_mthd', 'strc_class', 'hmgneous', 'plt_dim_m', 'lat_dd', 'long_dd', 'cent_x', 'cent_y']]
+site_visit_data = site_visit_data[['site_visit_code', 'project_code', 'site_code', 'data_tier',
+                                   'observe_date', 'scope_vascular', 'scope_bryophyte', 'scope_lichen',
+                                   'perspective', 'cover_method', 'structural_class', 'homogeneous',
+                                   'plot_dimensions_m', 'latitude_dd', 'longitude_dd',
+                                   'cent_x', 'cent_y']]
+
+# Rename fields for export as shapefile to meet shapefile field character length constraint
+export_point_data = site_visit_data.rename(columns={'site_visit_code': 'st_vst',
+                                                    'project_code': 'prjct_cd',
+                                                    'site_code': 'st_code',
+                                                    'observe_date': 'obs_date',
+                                                    'scope_vascular': 'scp_vasc',
+                                                    'scope_bryophyte': 'scp_bryo',
+                                                    'scope_lichen': 'scp_lich',
+                                                    'perspective': 'perspect',
+                                                    'cover_method': 'cvr_mthd',
+                                                    'structural_class': 'strc_class',
+                                                    'homogeneous': 'hmgneous',
+                                                    'plot_dimensions_m': 'plt_dim_m',
+                                                    'latitude_dd': 'lat_dd',
+                                                    'longitude_dd': 'long_dd'
+                                                    })
 
 # Export site visit data to shapefile
 site_point_data = gpd.GeoDataFrame(
-    site_visit_data,
+    export_point_data,
     geometry=gpd.points_from_xy(site_visit_data.cent_x,
                                 site_visit_data.cent_y),
     crs='EPSG:3338')
-site_point_data.to_file(site_point_output) # Optional to check point selection in a GIS
+site_point_data.to_file(site_point_output)  # Optional to check point selection in a GIS
 
 # Write where statement for site visits
 input_sql = '\r\nWHERE site_visit.site_visit_code IN ('
-for site_visit in site_visit_data['st_vst']:
+for site_visit in site_visit_data['site_visit_code']:
     input_sql = input_sql + r"'" + site_visit + r"', "
 input_sql = input_sql[:-2] + r');'
 
@@ -150,7 +177,7 @@ project_read = open(project_file, 'r')
 project_query = project_read.read()
 project_read.close()
 project_query = project_query.replace(';', input_sql)
-project_data = query_to_dataframe(database_connection, project_query).sort_values('prjct_cd')
+project_data = query_to_dataframe(database_connection, project_query).sort_values('project_code')
 
 # Read vegetation cover data from AKVEG Database for selected site visits
 vegetation_read = open(vegetation_file, 'r')
@@ -216,10 +243,11 @@ soilhorizons_query = soilhorizons_query.replace(';', input_sql)
 soilhorizons_data = query_to_dataframe(database_connection, soilhorizons_query)
 
 # Check number of cover observations per project
-project_check = pd.merge(vegetation_data, site_visit_data, on='st_vst', how='left')[['prjct_cd', 'st_vst']]
-project_check = project_check.groupby(['prjct_cd']).count().rename(columns={'st_vst': 'obs_n'})
-project_check['prjct_cd'] = project_check.index
-project_check = project_check.reset_index(drop=True)[['prjct_cd', 'obs_n']]
+project_check = pd.merge(vegetation_data, site_visit_data, on='site_visit_code', how='left')[['project_code',
+                                                                                              'site_visit_code']]
+project_check = project_check.groupby(['project_code']).count().rename(columns={'site_visit_code': 'obs_n'})
+project_check['project_code'] = project_check.index
+project_check = project_check.reset_index(drop=True)[['project_code', 'obs_n']]
 
 # Export data to csv files
 taxa_data.to_csv(taxa_output, index=False, encoding='utf-8')

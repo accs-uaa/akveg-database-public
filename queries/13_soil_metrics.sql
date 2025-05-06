@@ -8,7 +8,7 @@
 -- ---------------------------------------------------------------------------
 
 -- Compile soils data
-SELECT soil_metrics.site_visit_code as st_vst
+SELECT soil_metrics.site_visit_code as site_visit_code
      , soil_metrics.water_measurement as water_measurement
      , soil_metrics.measure_depth_cm as measure_depth_cm
      , soil_metrics.ph as ph

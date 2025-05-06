@@ -14,8 +14,8 @@ SELECT shrub_structure.site_visit_code as site_visit_code
      , shrub_class.shrub_class as shrub_class
      , height_type.height_type as height_type
      , shrub_structure.height_cm as height_cm
-     , cover_type.cover_type as cvr_type
-     , shrub_structure.cover_percent as cvr_pct
+     , cover_type.cover_type as cover_type
+     , shrub_structure.cover_percent as cover_percent
      , shrub_structure.mean_diameter_cm as mean_diameter_cm
      , shrub_structure.number_stems as number_stems
      , shrub_structure.shrub_subplot_area_m2 as shrub_subplot_area_m2

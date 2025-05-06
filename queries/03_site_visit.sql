@@ -8,21 +8,21 @@
 -- ---------------------------------------------------------------------------
 
 -- Compile site visit data
-SELECT site_visit.site_visit_code as st_vst
-	 , site_visit.project_code as prjct_cd
-     , site_visit.site_code as st_code
+SELECT site_visit.site_visit_code as site_visit_code
+	 , site_visit.project_code as project_code
+     , site_visit.site_code as site_code
      , data_tier.data_tier as data_tier
-	 , scope_vascular.scope as scp_vasc
-     , scope_bryophyte.scope as scp_bryo
-     , scope_lichen.scope as scp_lich
-	 , perspective.perspective as perspect
-	 , cover_method.cover_method as cvr_mthd
-	 , plot_dimensions.plot_dimensions_m as plt_dim_m
-	 , site_visit.observe_date as obs_date
-     , site.latitude_dd as lat_dd
-     , site.longitude_dd as long_dd
-     , structural_class.structural_class as strc_class
-     , site_visit.homogeneous as hmgneous
+	 , scope_vascular.scope as scope_vascular
+     , scope_bryophyte.scope as scope_bryophyte
+     , scope_lichen.scope as scope_lichen
+	 , perspective.perspective as perspective
+	 , cover_method.cover_method as cover_method
+	 , plot_dimensions.plot_dimensions_m as plot_dimensions_m
+	 , site_visit.observe_date as observe_date
+     , site.latitude_dd as latitude_dd
+     , site.longitude_dd as longitude_dd
+     , structural_class.structural_class as structural_class
+     , site_visit.homogeneous as homogeneous
 FROM site_visit
     LEFT JOIN data_tier ON site_visit.data_tier_id = data_tier.data_tier_id
     LEFT JOIN site ON site_visit.site_code = site.site_code

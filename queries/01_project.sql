@@ -8,15 +8,15 @@
 -- ---------------------------------------------------------------------------
 
 -- Compile project data
-SELECT DISTINCT site_visit.project_code as prjct_cd
-     , project.project_name as prjct_nm
+SELECT DISTINCT site_visit.project_code as project_code
+     , project.project_name as project_name
      , originator.organization as originator
      , funder.organization as funder
      , personnel.personnel as manager
-     , completion.completion as prjct_status
+     , completion.completion as project_status
      , project.year_start as year_start
      , project.year_end as year_end
-     , project.project_description as prjct_desc
+     , project.project_description as project_description
      , project.private as private
 FROM site_visit
     LEFT JOIN project ON site_visit.project_code = project.project_code

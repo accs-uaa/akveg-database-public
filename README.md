@@ -36,24 +36,26 @@ Once you have received server credentials from the data manager, you will need t
 
 ### Preparing files for example scripts
 
-The example scripts use three input files that are not included in this repository. When requesting credentials from the data manager, we will provide the input files as well.
+The example scripts use three input files that are not included in this repository. Each of the three inputs is available for download from a publicly accessible location (see links for each dataset below).
 
-- domain_input ('region_data/AlaskaYukon_MapDomain_3338.shp'): A shapefile containing the spatial domain of the AKVEG Map, which is the focal area of data integration and taxonomy for the AKVEG Database.
-- zone_input ()'region_data/AlaskaYukon_VegetationZones_v1.1_3338.shp'): A shapefile containing features for major biomes and vegetation zones of Alaska & Yukon.
-- fireyear_input ('ancillary_data/AlaskaYukon_FireYear_10m_3338.tif'): A 10 m raster dataset of most recent burn year from 1940 to 2023 where zero indicates that no burn was documented during that time frame.
+- domain_input ('region_data/AlaskaYukon_ProjectDomain_v2.0_3338.shp'): A shapefile containing the spatial domain of the AKVEG Map project domain, which is the focal area of data integration and taxonomy for the AKVEG Database. You can [download the domain input](https://storage.googleapis.com/akveg-public/AlaskaYukon_ProjectDomain_v2.0_3338.zip) and unzip it into an accessible local folder.
+- region_input ('region_data/AlaskaYukon_Regions_v2.0_3338.shp'): A shapefile containing features for major biomes and vegetation regions of Alaska & adjacent Canada (Yukon and Northern British Columbia). You can [download the region input](https://storage.googleapis.com/akveg-public/AlaskaYukon_Regions_v2.0_3338.zip) and unzip it into an accessible local folder.
+- fireyear_input ('ancillary_data/AlaskaYukon_FireYear_10m_3338.tif'): A 10 m raster dataset of most recent burn year from 1940 to 2023 where zero indicates that no burn was documented during that time frame. You can download the fire year input (~ 800 mb) and unzip it into an accessible local folder. Alternatively, you can remove interactions with this dataset from the example script, but you will then not be able to compare observed year to burn year.
 
-These files are provided for the purpose of providing examples for how to relate the data in the AKVEG Database to other geospatial data. These data are not required to use or access data in the AKVEG Database. To run the example scripts with the example data included, the example data must be unzipped to a location accessible to your script environment. 
+These files are provided for the purpose of providing examples for how to relate the data in the AKVEG Database to other geospatial data. These data are not required to use or access data in the AKVEG Database. To run the example scripts with the example data included, file paths in the script must be modified to match where you store the geospatial datasets locally.  
 
-### Column aliases
+### Column aliases for shapefiles
 
-The queries employ shorthand codes for many of the column names for compatibility with ArcGIS field names (used in the example scripts). Please refer to the individual queries for the non-aliased column names used in the AKVEG database. We recommend using these names (rather than the aliases) if compatibility with ArcGIS is not required since they are more descriptive and human-readable.
+The queries employ shorthand field names where the database field names are too long for the ESRI shapefile format field character length constraint. When viewing the shapefile attributes, please refer to the scripts for relationship between shapefile aliases and original field names used in the AKVEG Database.
 
 ### Metadata tables
 
-The AKVEG database contains two metadata tables that are likely to be useful to users:
-1. database_schema: Information on the structure of the database.
+The AKVEG Database contains two metadata tables that are likely to be useful to users:
+
+1. database_schema: Information on the structure of the database, including how field relationships.
 2. database_dictionary: List and definitions of constrained values.
 
+The AKVEG Database follows follows the [Minimum Standards for Field Observation of Vegetation and Related Properties](https://agc-vegetation-soa-dnr.hub.arcgis.com/documents/817be3b0405a42aea91cee0b92d77f98/explore) developed by the Alaska Vegetation Working Group (VWG). The Minimum Standards document provides additional description of the fields in the database and how the fields relate to data tiers.
 ## Credits
 
 ### Built With

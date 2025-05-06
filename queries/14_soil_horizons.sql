@@ -8,7 +8,7 @@
 -- ---------------------------------------------------------------------------
 
 -- Compile soils data
-SELECT soil_horizons.site_visit_code as st_vst
+SELECT soil_horizons.site_visit_code as site_visit_code
      , soil_horizons.horizon_order as horizon_order
      , soil_horizons.thickness_cm as thickness_cm
      , soil_horizons.depth_upper_cm as depth_upper_cm

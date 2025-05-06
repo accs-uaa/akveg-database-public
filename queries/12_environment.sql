@@ -8,7 +8,7 @@
 -- ---------------------------------------------------------------------------
 
 -- Compile environment data
-SELECT environment.site_visit_code as st_vst
+SELECT environment.site_visit_code as site_visit_code
      , physiography.physiography as physiography
      , geomorphology.geomorphology as geomorphology
      , macrotopography.macrotopography as macrotopography
