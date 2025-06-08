@@ -58,7 +58,7 @@ The AKVEG Database contains two metadata tables that are likely to be useful to 
 1. database_schema: Information on the structure of the database, including how field relationships.
 2. database_dictionary: List and definitions of constrained values.
 
-The AKVEG Database follows follows the [Minimum Standards for Field Observation of Vegetation and Related Properties](https://agc-vegetation-soa-dnr.hub.arcgis.com/documents/817be3b0405a42aea91cee0b92d77f98/explore) developed by the Alaska Vegetation Working Group (VWG). The Minimum Standards document provides additional description of the fields in the database and how the fields relate to data tiers.
+The AKVEG Database follows the [Minimum Standards for Field Observation of Vegetation and Related Properties](https://agc-vegetation-soa-dnr.hub.arcgis.com/documents/817be3b0405a42aea91cee0b92d77f98/explore) developed by the Alaska Vegetation Working Group (VWG). The Minimum Standards document provides additional description of the fields in the database and how the fields relate to data tiers.
 ## Credits
 
 ### Built With
