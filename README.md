@@ -5,7 +5,10 @@ Scripts to query public data stored in the Alaska Vegetation (AKVEG) Database.
 
 These instructions will enable you to query public data in the Alaska Vegetation (AKVEG) Database. The AKVEG Database is built in PostgreSQL and hosted on a cloud server that can be queried in numerous ways. This repository provides example scripts to query the database in Python and R.
 
-To query the database, you will need server credentials. Please contact [Amanda Droghini](mailto:adroghini@alaska.edu), the data manager for the AKVEG Database, to request server credentials. The database is public and access is free; the purpose of the server credentials is to prevent excessive loads on the server and to maintain knowledge of how many people are connecting.
+To query the database, you will need server credentials. To request server credentials, fill out a 
+[Database Access Form](https://akveg.uaa.alaska.edu/request-access/). The database is public and 
+access is free; the purpose of the server credentials is to prevent excessive loads on the server and for us to know 
+how many people are connecting.
 
 ### Prerequisites
 1. Python 3.9+
