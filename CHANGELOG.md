@@ -1,8 +1,8 @@
 # Changelog
 All notable changes to the AKVEG Database will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses a custom versioning system 
-(explained at the end of this document). 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses a [custom versioning 
+system](#versioning-system). 
 
 ## [2.1.0] - 2025-07-19
 
