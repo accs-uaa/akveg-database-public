@@ -1,0 +1,86 @@
+-- -*- coding: utf-8 -*-
+-- ---------------------------------------------------------------------------
+-- Build vegetation tables
+-- Author: Timm Nawrocki, Alaska Center for Conservation Science
+-- Last Updated: 2024-11-19
+-- Usage: Script should be executed in a PostgreSQL 14+ database.
+-- Description: "Build vegetation tables" creates the empty tables for the vegetation components of the AKVEG database. WARNING: THIS SCRIPT WILL ERASE ALL DATA IN EXISTING VEGETATION TABLES.
+-- ---------------------------------------------------------------------------
+
+-- Initialize transaction
+START TRANSACTION;
+
+-- Drop project tables if they exist
+DROP TABLE IF EXISTS
+    vegetation_cover,
+    whole_tussock_cover,
+    structural_group_cover,
+    tree_structure,
+    shrub_structure;
+
+-- Create vegetation cover table
+CREATE TABLE vegetation_cover (
+    vegetation_cover_id serial PRIMARY KEY,
+    site_visit_code varchar(65) NOT NULL REFERENCES site_visit,
+    cover_type_id smallint NOT NULL REFERENCES cover_type,
+    name_original varchar(120) NOT NULL,
+    code_adjudicated varchar(12) NOT NULL REFERENCES taxon_all,
+    cover_percent decimal(6,3) NOT NULL,
+    dead_status boolean NOT NULL,
+    UNIQUE(site_visit_code, cover_type_id, name_original, code_adjudicated, dead_status)
+);
+
+-- Create whole tussock cover table
+CREATE TABLE whole_tussock_cover (
+    tussock_id serial PRIMARY KEY,
+    site_visit_code varchar(65) NOT NULL REFERENCES site_visit,
+    cover_type_id smallint NOT NULL REFERENCES cover_type,
+    cover_percent decimal(6,3) NOT NULL,
+    UNIQUE(site_visit_code, cover_type_id)
+);
+
+-- Create structural group cover table
+CREATE TABLE structural_group_cover (
+    structural_cover_id serial PRIMARY KEY,
+    site_visit_code varchar(65) NOT NULL REFERENCES site_visit,
+    cover_type_id smallint NOT NULL REFERENCES cover_type,
+    structural_group_id smallint NOT NULL REFERENCES structural_group,
+    cover_percent decimal(6,3) NOT NULL,
+    UNIQUE(site_visit_code, cover_type_id, structural_cover_id)
+);
+
+-- Create tree structure table
+CREATE TABLE tree_structure (
+    tree_structure_id serial PRIMARY KEY,
+    site_visit_code varchar(65) NOT NULL REFERENCES site_visit,
+    name_original varchar(120) NOT NULL,
+    code_adjudicated varchar(12) NOT NULL REFERENCES taxon_all,
+    crown_class_id smallint NOT NULL REFERENCES crown_class,
+    height_type_id smallint NOT NULL REFERENCES height_type,
+    height_cm decimal(8,1) NOT NULL,
+    cover_type_id smallint REFERENCES cover_type,
+    cover_percent decimal(6,3),
+    mean_dbh_cm decimal(7,3),
+    number_stems smallint,
+    mean_tree_age_y smallint,
+    tree_subplot_area_m2 decimal(10,3)
+);
+
+-- Create shrub structure table
+CREATE TABLE shrub_structure (
+    shrub_structure_id serial PRIMARY KEY,
+    site_visit_code varchar(65) NOT NULL REFERENCES site_visit,
+    name_original varchar(120) NOT NULL,
+    code_adjudicated varchar(12) NOT NULL REFERENCES taxon_all,
+    shrub_class_id smallint NOT NULL REFERENCES shrub_class,
+    height_type_id smallint NOT NULL REFERENCES height_type,
+    height_cm decimal(8,1) NOT NULL,
+    cover_type_id smallint REFERENCES cover_type,
+    cover_percent decimal(6,3),
+    mean_diameter_cm decimal(7,3),
+    number_stems smallint,
+    shrub_subplot_area_m2 decimal(10,3)
+);
+
+-- Commit transaction
+COMMIT TRANSACTION;
