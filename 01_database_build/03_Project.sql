@@ -25,7 +25,7 @@ CREATE TABLE project (
     manager_id smallint NOT NULL REFERENCES personnel,
     completion_id smallint NOT NULL REFERENCES completion,
     year_start smallint NOT NULL,
-    year_end smallint,
+    year_end smallint NOT NULL,
     project_description varchar(500) NOT NULL,
     private boolean NOT NULL
 );
