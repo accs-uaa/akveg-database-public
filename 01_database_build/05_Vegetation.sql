@@ -2,8 +2,8 @@
 -- ---------------------------------------------------------------------------
 -- Build vegetation tables
 -- Author: Timm Nawrocki, Alaska Center for Conservation Science
--- Last Updated: 2024-11-19
--- Usage: Script should be executed in a PostgreSQL 14+ database.
+-- Last Updated: 2025-08-15
+-- Usage: Script should be executed in a PostgreSQL 17+ database.
 -- Description: "Build vegetation tables" creates the empty tables for the vegetation components of the AKVEG database. WARNING: THIS SCRIPT WILL ERASE ALL DATA IN EXISTING VEGETATION TABLES.
 -- ---------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ CREATE TABLE structural_group_cover (
     cover_type_id smallint NOT NULL REFERENCES cover_type,
     structural_group_id smallint NOT NULL REFERENCES structural_group,
     cover_percent decimal(6,3) NOT NULL,
-    UNIQUE(site_visit_code, cover_type_id, structural_cover_id)
+    UNIQUE(site_visit_code, cover_type_id, structural_group_id)
 );
 
 -- Create tree structure table
