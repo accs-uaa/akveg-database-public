@@ -40,7 +40,7 @@ CREATE TABLE site_visit (
     scope_vascular_id smallint NOT NULL REFERENCES scope,
     scope_bryophyte_id smallint NOT NULL REFERENCES scope,
     scope_lichen_id smallint NOT NULL REFERENCES scope,
-    observe_date varchar(10) NOT NULL,
+    observe_date date NOT NULL,
     veg_observer_id smallint NOT NULL REFERENCES personnel,
     veg_recorder_id smallint REFERENCES personnel,
     env_observer_id smallint REFERENCES personnel,
