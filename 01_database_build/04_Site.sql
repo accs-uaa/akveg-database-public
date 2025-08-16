@@ -40,7 +40,7 @@ CREATE TABLE site_visit (
     scope_vascular_id smallint NOT NULL REFERENCES scope,
     scope_bryophyte_id smallint NOT NULL REFERENCES scope,
     scope_lichen_id smallint NOT NULL REFERENCES scope,
-    observe_date date NOT NULL,
+    observe_date date NOT NULL CONSTRAINT year_range CHECK (EXTRACT(YEAR FROM observe_date) BETWEEN 1990 AND EXTRACT(YEAR FROM CURRENT_DATE)),
     veg_observer_id smallint NOT NULL REFERENCES personnel,
     veg_recorder_id smallint REFERENCES personnel,
     env_observer_id smallint REFERENCES personnel,
