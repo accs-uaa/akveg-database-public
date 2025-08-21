@@ -43,7 +43,7 @@ CREATE TABLE whole_tussock_cover (
 CREATE TABLE structural_group_cover (
     structural_cover_id serial PRIMARY KEY,
     site_visit_code varchar(65) NOT NULL REFERENCES site_visit,
-    cover_type_id smallint NOT NULL REFERENCES cover_type CONSTRAINT check_cover_type CHECK (cover_type_id IN (1, 3)),
+    cover_type_id smallint NOT NULL REFERENCES cover_type CONSTRAINT str_group_check_cover_type CHECK (cover_type_id IN (1, 3)),
     structural_group_id smallint NOT NULL REFERENCES structural_group,
     cover_percent decimal(6,3) NOT NULL,
     UNIQUE(site_visit_code, cover_type_id, structural_group_id)
