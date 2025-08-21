@@ -58,7 +58,7 @@ CREATE TABLE tree_structure (
     crown_class_id smallint NOT NULL REFERENCES crown_class,
     height_type_id smallint NOT NULL REFERENCES height_type,
     height_cm decimal(8,1) NOT NULL,
-    cover_type_id smallint REFERENCES cover_type,
+    cover_type_id smallint REFERENCES cover_type CONSTRAINT tree_check_cover_type CHECK (cover_type_id IN (1, 3)),
     cover_percent decimal(6,3),
     mean_dbh_cm decimal(7,3),
     number_stems smallint,
