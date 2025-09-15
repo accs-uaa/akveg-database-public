@@ -105,8 +105,6 @@ plantid = plantid_original.loc[
     :, ["plantiid", "plantsciname", "plantsym", "plantnatvernm"]
 ]
 
-#### Format Vegetation Cover table ####
-
 # Obtain site visit code
 vegcover = vegcover_original.merge(
     right=lookup_visit, how="right", left_on="vegplotiidref", right_on="vegplotiid"
