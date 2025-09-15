@@ -9,7 +9,7 @@
 # Comprehensive Checklist. The output is a CSV file that can be included in an SQL INSERT statement.
 # ---------------------------------------------------------------------------
 
-# Import librairies
+# Import libraries
 from pathlib import Path
 import sqlite3
 import pandas as pd
