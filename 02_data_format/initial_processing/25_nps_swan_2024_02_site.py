@@ -6,7 +6,7 @@
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Format 2024 NPS SWAN Site Data" formats site-level information for ingestion into the AKVEG Database.
 # The script drops sites with missing coordinates, verifies that coordinates are within the map boundary,
-# and adds required metadata fields. The output is a 
+# and adds required metadata fields. The output is a
 # CSV table that can be converted and included in a SQL INSERT statement.
 # ---------------------------------------------------------------------------
 
@@ -14,7 +14,6 @@
 import polars as pl
 import geopandas as gpd
 from pathlib import Path
-from shapely.geometry import box
 
 # Define directories
 drive = Path('C:/')
