@@ -22,11 +22,12 @@ project_folder = root / 'OneDrive - University of Alaska' /'ACCS_Teams' /'Vegeta
 plot_folder = project_folder / 'Data_Plots' / '25_nps_swan_2024'
 spatial_folder = root / "Projects" / "AKVEG_Map" / "Data" / "region_data"
 
-# Define input
+# Define inputs
 template_input = project_folder / 'Data_Entry' / '02_site.xlsx'
 boundary_input = spatial_folder / "AlaskaYukon_100_Tiles_3338.shp"
 site_input = plot_folder / 'source' / 'SWAN_Vegetation_Database' / 'SWAN_Veg_Plot.csv'
 coordinates_input = plot_folder / 'archive' / 'source' / 'AK_Veg_20211115_SWAN_ptint_trees.xlsx'
+vegetation_input = plot_folder / 'source' / 'SWAN_Vegetation_Database' / 'SWAN_Veg_PointIntercept.csv'
 
 # Define output
 site_output = plot_folder / '02_site_npsswan2024.csv'
@@ -40,12 +41,18 @@ coordinates_original = pl.read_excel(coordinates_input, columns=['Plot', 'Latitu
                                                                  'Longitude_sw_corner'],
                                                        sheet_name='PlotBasics')
 site_original = pl.read_csv(site_input, columns=['Plot'])
+vegetation_original = pl.read_csv(vegetation_input, columns=['Plot'], encoding='utf8-lossy')
 
-# Join dataframes
+# Append coordinates to site df
 site = site_original.join(coordinates_original, on='Plot', how='right')
 
 # Drop plots with no coordinates
 site = site.drop_nulls()
+
+# Drop sites that are not included in vegetation table
+## Sites do not meet AKVEG Minimum Standards
+missing_sites = site.join(vegetation_original, on='Plot', how='anti')
+site = site.join(missing_sites, on="Plot", how="anti")
 
 # Rename columns
 site = site.rename({"Plot": "site_code",

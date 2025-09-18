@@ -20,10 +20,11 @@ root = drive / 'ACCS_Work'
 project_folder = root / 'OneDrive - University of Alaska' /'ACCS_Teams' /'Vegetation' / 'AKVEG_Database' / 'Data'
 plot_folder = project_folder / 'Data_Plots' / '25_nps_swan_2024'
 
-# Define input
+# Define inputs
 template_input = project_folder / 'Data_Entry' / '03_site_visit.xlsx'
 site_input = plot_folder / '02_site_npsswan2024.csv'
 visit_input = plot_folder / 'source' / 'SWAN_Vegetation_Database' / 'SWAN_Veg_PlotSample.csv'
+vegetation_input = plot_folder / 'source' / 'SWAN_Vegetation_Database' / 'SWAN_Veg_PointIntercept.csv'
 
 # Define output
 visit_output = plot_folder / '03_sitevisit_npsswan2024.csv'
@@ -33,19 +34,30 @@ template = pl.read_excel(template_input)
 site_original = pl.read_csv(site_input, columns='site_code')
 visit_original = pl.read_csv(visit_input, columns=['Plot', 'Sample_Date', 'Vegetation_Class_Code',
                                                    'Forest_Type_Code', 'Plot_Sample_Comments'], try_parse_dates=False)
-
-# Drop plots with no coordinates (i.e., not included in Site table)
-visit = visit_original.join(site_original, how='right', left_on='Plot', right_on='site_code')
-visit.null_count()
+vegetation_original = pl.read_csv(vegetation_input, columns=['Plot', 'Sample_Date'],
+                                  try_parse_dates=False,
+                                  encoding='utf8-lossy')
 
 # Format date
-visit = visit.with_columns(pl.col("Sample_Date").str.to_date("%m/%d/%Y").alias('observe_date'))
+visit = visit_original.with_columns(observe_date = pl.col("Sample_Date").str.to_date("%m/%d/%Y"))
 print(visit.select('observe_date').describe())
 print(visit['observe_date'].dt.month().unique())  ## Date range is reasonable
 
 # Create site visit code
 visit = visit.with_columns(date_string = pl.col('observe_date').dt.to_string().str.replace_all("-", ""))
-visit = visit.with_columns(site_visit_code = pl.concat_str([pl.col('site_code'),pl.col('date_string')], separator="_"))
+visit = visit.with_columns(site_visit_code = pl.concat_str([pl.col('Plot'),pl.col('date_string')], separator="_"))
+
+# Drop plots not included in Site table
+visit = visit.join(site_original, how='right', left_on='Plot', right_on='site_code')
+
+# Drop site visits not included in Vegetation Cover table
+vegetation = vegetation_original.with_columns(observe_date = pl.col('Sample_Date').str.to_date("%m/%d/%Y"))
+vegetation = vegetation.with_columns(date_string = pl.col('observe_date').dt.to_string().str.replace_all("-", ""))
+vegetation = vegetation.with_columns(site_visit_code = pl.concat_str([pl.col('Plot'),pl.col('date_string')],
+                                                                     separator="_"))
+vegetation = vegetation.select('site_visit_code')
+visit = visit.join(vegetation, how='right', on='site_visit_code')
+print(visit.null_count())
 
 # Re-classify structural class data
 visit = visit.with_columns(structural_class = pl.col('Vegetation_Class_Code').str.to_lowercase())
