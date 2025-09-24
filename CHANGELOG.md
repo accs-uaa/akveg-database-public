@@ -4,6 +4,23 @@ All notable changes to the AKVEG Database will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses a [custom versioning 
 system](#versioning-system). 
 
+## Unreleased
+
+### Added
+* **accs_nwisouthcentral_2024**: Add Project, Site, Site Visit, Vegetation Cover, Abiotic Top Cover, and Whole Tussock 
+  Cover.
+
+### Fixed
+* **Abiotic Top Cover**: Removed 'animal litter' entries. Animal litter is a biotic element and is therefore 
+  only 
+  included in the Ground Cover table.
+
+## [2.1.1] 2025-09-24
+
+### Added
+* **ground_element_table**: Add `element_type` column to distinguish between elements that are included in the 
+  abiotic top cover table, the ground cover table, or both.
+
 ## [2.1.0] - 2025-07-19
 
 ### Added
@@ -37,8 +54,9 @@ system](#versioning-system).
 We use a MAJOR.MINOR.PATCH versioning system where we increment the:
 1. MAJOR version when we change the database schema 
 2. MINOR version for all other changes, including adding, removing, or modifying datasets. 
-3. PATCH version is not currently used, but we include it here to mirror the format that is used in software 
-   development.
+3. PATCH version for changes to the database that do not substantially alter its structure e.g., 
+   adding a 
+   constrained value, adding or modifying a descriptive field.
 
 We began this change log on 2025-07-19. At that date, we were on schema version 2.0. For simplicity's sake, we started 
 our 
