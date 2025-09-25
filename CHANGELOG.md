@@ -11,11 +11,12 @@ system](#versioning-system).
 * **accs_nwisouthcentral_2024**: Add Project, Site, Site Visit, Vegetation Cover, Abiotic Top Cover, and Whole Tussock 
   Cover.
 
-### Fixed
+### Removed
+* **Abiotic Top Cover**: Removed data of elements that did not belong to the abiotic element set i.e., animal litter 
+  and biotic.
 
-* **Abiotic Top Cover**: Removed 'animal litter' entries. Animal litter is a biotic element and is therefore 
-  only 
-  included in the Ground Cover table.
+### Fixed
+* **Abiotic Top Cover**: Added missing elements for each site visit record and assigned them a cover percent of 0%.
 
 ## [2.1.1] 2025-09-24
 
