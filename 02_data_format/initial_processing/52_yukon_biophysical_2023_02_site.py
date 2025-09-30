@@ -157,8 +157,8 @@ dimensions_map = {
     'approximately 100x100 m observed from an aircraft (size may vary)': '100×100',
     'Non-standard plot of irregular shape (e.g., trough in polygonal landscape)': 'unknown',
     'Unable to determine plot type for older data': 'unknown',
-    'Trees: 10x10m; Shrubs: 5x5m; Herbs: 1x1m': '5×5',
-    'Trees: 20x20m; Shrubs: 5x5m; Herbs: 1x1m': '5×5'
+    'Trees: 10x10m; Shrubs: 5x5m; Herbs: 1x1m': '10×10',
+    'Trees: 20x20m; Shrubs: 5x5m; Herbs: 1x1m': '20×20'
 }
 
 ## Replace values to match constrained values in AKVEG Database
