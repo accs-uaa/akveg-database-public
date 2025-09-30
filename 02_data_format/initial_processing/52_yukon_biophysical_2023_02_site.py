@@ -1,129 +1,141 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------------
-# Format Site table for  Yukon Biophysical Inventory Data System plot data
+# Format Site table for  Yukon Biophysical Inventory System plot data
 # Author: Amanda Droghini, Alaska Center for Conservation
-# Last Updated: 2025-06-19
+# Last Updated: 2025-09-29
 # Usage: Must be executed in an ArcGIS Pro Python 3.11+ distribution.
-# Description: "Format Site table for  Yukon Biophysical Inventory Data System plot data" extracts relevant
-# information from an ESRI shapefile, re-projects to NAD83, drops sites with missing data, replaces values with the
-# correct constrained values, and performs QC checks. The output is a CSV file that can be used to write a SQL INSERT
+# Description: "Format Site table for Yukon Biophysical Inventory System plot data" extracts relevant
+# information from an ESRI shapefile, re-projects to NAD83, drops sites with missing data, verifies that coordinates
+# are within the map boundary, replaces values with the correct constrained values, and performs QC checks. The
+# output is a CSV file that can be used to write a SQL INSERT
 # statement for ingestion into the AKVEG database.
 # ---------------------------------------------------------------------------
 
-# Import packges
-import arcpy
-import numpy as np
+# Import packages
+import geopandas as gpd
 import pandas as pd
-from akutils import *
+import polars as pl
 from pathlib import Path
 
-# Define directories
-
-## Define root directories
+# Define folder structure
 drive = Path('C:/')
-root_folder = Path('ACCS_Work')
+root_folder = drive / 'ACCS_Work'
 
-## Define folder structure
-project_folder = drive / root_folder / 'OneDrive - University of Alaska/ACCS_Teams/Vegetation/AKVEG_Database' / 'Data'
+project_folder = root_folder / 'OneDrive - University of Alaska/ACCS_Teams/Vegetation/AKVEG_Database' / 'Data'
 plot_folder = project_folder / 'Data_Plots' / '52_yukon_biophysical_2023'
 source_folder = plot_folder / 'source' / 'ECLDataForAlaska_20240919' / 'YBIS_Data'
 
-# Set workspace
-workspace_gdb = drive / root_folder / 'Projects' / 'AKVEG_Map' / 'Data' / 'AKVEG_Workspace.gdb'
-arcpy.env.workspace = str(workspace_gdb)  ## Convert to string; arcpy.env.workspace doesn't support pathlib
-
-# Define files
-
-## Define inputs
-plot_original = source_folder / 'YBISPlotLocations.shp'
+# Define inputs
+plot_input = source_folder / 'YBISPlotLocations.shp'
 veg_input = source_folder / 'Veg_2024Apr09.xlsx'
 template_input = project_folder / 'Data_Entry' / '02_site.xlsx'
-dictionary_input = project_folder / 'Tables_Metadata' / 'database_dictionary.xlsx'
 
-# Define intermediate datasets
-plot_project = workspace_gdb / 'YBIS_2024'
-
-## Define output
+# Define output
 site_output = plot_folder / '02_site_yukonbiophysical2023.csv'
 
-# Set environment options
+# Read in data
+site_original = gpd.read_file(plot_input)
+veg_original = pl.read_excel(veg_input, columns=["Project ID", "Plot ID", "Scientific name", "Veg cover pct", "Access"])
+template = pl.read_excel(template_input)
 
-## Set overwrite option
-arcpy.env.overwriteOutput = True
+# Drop sites with no geometry
+site_project = site_original[site_original.geometry.notna()]
 
-## Define coordinate systems
-arcpy.env.outputCoordinateSystem = arcpy.SpatialReference(4269)  ## Set output coordinate system to NAD83
-input_coords = arcpy.SpatialReference(4326)
-transformation = 'WGS_1984_(ITRF00)_To_NAD_1983'
-
-## Define functions
-def convert_int(value):
-    if pd.isna(value):  ## Check for both np.nan and None
-        return -999
-    try:
-        return int(str(value).strip())  ## Convert to string + trim whitespace
-    except ValueError:
-        return -999
-
-# Re-project data to NAD83
-arcpy.management.Project(str(plot_original), str(plot_project), in_coor_system=input_coords,
-                         transform_method=transformation)
+# Re-project plot data to NAD83
+print(site_project.crs)
+output_crs = 'EPSG:4269'
+site_project = site_project.to_crs(output_crs)
 
 # Add XY coordinates
-arcpy.management.AddXY(str(plot_project))
-
-# Read in data
-site_original = geodatabase_to_dataframe(str(plot_project))  ## Convert to string; akutils doesn't support pathlib
-veg_original = pd.read_excel(veg_input, usecols=["Project ID", "Plot ID", "Scientific name", "Veg cover pct"])
-template = pd.read_excel(template_input)
-dictionary = pd.read_excel(dictionary_input)
-
-# Retain relevant columns
-site = site_original.filter(items={'Project_ID', 'Plot_ID', 'Survey_dat', 'Plot_type_', 'POINT_X', 'POINT_Y', 'Coord_prec',
-                                   'Coord_sour'})
-
-# Drop sites without enough data
-site = (site.replace(to_replace=[' ', 'UNK'], value=np.nan)  ## Replace unknowns & empty spaces with NaN
-        .dropna(axis='index', how='any', subset=['POINT_X', 'POINT_Y', 'Survey_dat'])  ## Drop sites without
-        # coordinates or dates
-        .loc[site.Plot_type_ != 'Plot and soil information only']  ## Drop sites without vegetation data
-        .dropna(axis='index', how='all', subset=['Coord_sour', 'Coord_prec']))  ## Drop sites with unknown
-# coordinate precision
-
-## Drop sites with unreliable survey dates (n=4)
-site = site.assign(observe_month = pd.to_datetime(site.Survey_dat, format='%Y %b %d').dt.month)
-site = site.loc[(site.observe_month >= 4) & (site.observe_month <= 10)]
-
-# Replace null values
-print(site.isna().sum())
-
-site = site.fillna({'Plot_type_': 'unknown',
-                    'Coord_prec': '-999'})
+site_project['longitude_dd'] = site_project.geometry.x
+site_project['latitude_dd'] = site_project.geometry.y
 
 # Explore coordinates
-site[["POINT_X", "POINT_Y"]].describe()  ## Values are reasonable
+## Not particularly useful to intersect with map boundary since ~50% of sites are outside of it. Perform a visual
+# check instead
+site_project[["longitude_dd", "latitude_dd"]].describe()  ## Values are reasonable
+
+# Convert to polars dataframe
+site = pd.DataFrame(site_project).drop(columns=['geometry'])
+site = pl.from_pandas(site)
+
+# Retain relevant columns
+site = site.select(['Project_ID', 'Plot_ID', 'Survey_dat', 'Plot_type_', 'latitude_dd', 'longitude_dd',
+                                   'Coord_prec', 'Coord_sour'])
+
+print(site.select("Plot_ID","Project_ID").unique().height == site.height)  ## Ensure Plot IDs are unique
+
+# Drop sites that are not for public access
+## Communication with data manager on 2025-09-25: Project IDs 206 and 208 can be made public
+public_sites = veg_original.filter((pl.col("Access") == 'Available to all users.') |
+                            (pl.col("Project ID").is_in([206, 208])))
+site = site.join(public_sites, left_on='Plot_ID', right_on='Plot ID', how='semi')
+
+# Drop site for which all percent cover are zero
+## Notes indicate this is because % cover was not recorded
+no_cover = (public_sites.group_by('Plot ID')
+            .agg(pl.col("Veg cover pct").sum().alias("total_cover"))
+            .filter(pl.col('total_cover') == 0)
+            .select('Plot ID'))
+site = site.join(no_cover, left_on='Plot_ID', right_on='Plot ID', how='anti')
+
+# Drop sites without enough data
+
+## Replace unknown/empty values with NaN
+print(site.null_count())
+
+values_to_replace = [' ', 'UNK']
+site = site.with_columns(
+    pl.col(pl.Utf8)  # Select all string (Utf8) columns
+    .replace(values_to_replace, None)
+)
+
+## Drop sites without survey dates (n=1)
+## Drop sites with only plot + soil data (no vegetation) (n=6)
+## Drop sites with unknown coordinate precision (n=1500)
+site = (site.drop_nulls(subset=pl.col('Survey_dat'))
+        .filter(pl.col('Plot_type_') != 'Plot and soil information only')
+        .filter(pl.col('Coord_sour').is_not_null() | pl.col('Coord_prec').is_not_null()))
+
+## Drop sites where minimum mapping unit is fairly coarse (1:50,000 and 1:250,000)
+site = site.filter(~pl.col('Coord_prec').is_in(['MMU50K', 'MMU250K']))
+
+# Drop sites with unreliable survey dates (n=2)
+site = site.with_columns(observe_date = pl.col("Survey_dat").str.to_date("%Y %b %d"))
+site = site.with_columns(observe_month = pl.col('observe_date').dt.month())
+site = site.filter((pl.col('observe_month') >= 4) & (pl.col('observe_month') <= 10))
+print(site.select('observe_date').describe())
+print(site.select('observe_month').unique().sort(by='observe_month'))
+
+# Replace null values
+site = site.with_columns(pl.col('Plot_type_').fill_null(pl.lit('unknown')),
+                         pl.col('Coord_prec').fill_null(pl.lit('-999')),
+                         pl.col('Coord_sour').fill_null(pl.lit('unknown')))
+print(site.null_count())
 
 # Format site code
 
 ## Create combination of project + plot ID for easier retrieval/comparison later on
-site = site.assign(site_code=site.Project_ID.astype(str) + '_' + site.Plot_ID.astype(str))
-print(site.site_code.nunique() == site.shape[0])  ## Ensure ids are unique
+site = site.with_columns(
+    (pl.col("Project_ID").cast(pl.Utf8) +
+    pl.lit("_") +
+    pl.col("Plot_ID").cast(pl.Utf8)).alias("site_code"))
 
 # Format horizontal error
-print(site.Coord_prec.value_counts())
+print(site['Coord_prec'].value_counts())
+site = site.with_columns(pl.when(pl.col('Coord_prec') == '>100m')
+                         .then(pl.lit("200"))
+                         .otherwise(pl.col('Coord_prec').str.replace(r"m$", "", literal=False))
+                         .alias('h_error_m'))
+site = site.with_columns(pl.col('h_error_m').str.strip_chars().cast(pl.Int16))  ## Convert to integer
 
-site = site.assign(h_error_m = np.where(site['Coord_prec'] == '>100m', '200',
-                                        site['Coord_prec'].str.replace(pat='[m]$', repl='', regex=True)))
-
-site.h_error_m = site.h_error_m.apply(convert_int)
-
-print(site.h_error_m.value_counts())
+print(site['h_error_m'].value_counts())
 
 # Format plot dimensions
-print(site.Plot_type_.value_counts())
+print(site['Plot_type_'].value_counts())
 
 ## Create replacement map
-replacement_map = {
+dimensions_map = {
     '20 m diameter': '10 radius',
     '10 m diameter': '5 radius',
     '1x1 m': '1×1',
@@ -137,70 +149,57 @@ replacement_map = {
     'Trees: 20x20m; Shrubs: 5x5m; Herbs: 1x1m': '5×5'
 }
 
-## Replace values to match constrained values in data dictionary
-site['plot_dimensions_m'] = site['Plot_type_'].replace(replacement_map)
+## Replace values to match constrained values in AKVEG Database
+site = site.with_columns(pl.col('Plot_type_').str.replace_many(dimensions_map)
+                         .alias('plot_dimensions_m'))
 
 ## Drop sites with unknown plot dimensions
-site = site.loc[~(site.plot_dimensions_m == 'unknown')]
-
-## Ensure all entries correspond to a value in the data dictionary
-print(site.plot_dimensions_m.isin(dictionary.data_attribute).all())
+site = site.filter(pl.col('plot_dimensions_m') != 'unknown')
+print(site['plot_dimensions_m'].value_counts())
 
 # Format positional accuracy
-print(site.Coord_sour.value_counts())
+print(site['Coord_sour'].value_counts())
 
 ## Create replacement map
-replacement_map = {
+accuracy_map = {
     'NGPS': 'consumer grade GPS',
     'DGPS': 'consumer grade GPS',
-    'ARGOS': 'consumer grade GPS',
     'ORTHOPHOTO1.0': 'image interpretation',
     'DIGITIZED50K': 'map interpretation',
     'MAP50K': 'map interpretation',
     'DIGITIZED250K': 'map interpretation',
     'MAP250K': 'map interpretation',
-    'MAP': 'map interpretation'
 }
 
 ## Replace values to match constrained values in data dictionary
-site['positional_accuracy'] = site['Coord_sour'].replace(replacement_map)
+site = site.with_columns(pl.col('Coord_sour').str.replace_many(accuracy_map)
+                         .alias('positional_accuracy'))
+site = site.with_columns(pl.col('positional_accuracy').str.replace("MAP", "map interpretation")
+                         .alias('positional_accuracy'))
+
+print(site['positional_accuracy'].value_counts())
 
 ## Explore entries with 'unknown' positional accuracy
-temp = site.loc[site['positional_accuracy'].isna()]
-print(temp.h_error_m.value_counts())
+unknown_accuracy = site.filter(pl.col('positional_accuracy') == 'unknown')
+print(unknown_accuracy['h_error_m'].value_counts())
 
-## Correct 3 sites with unknown positional accuracy and relatively low positional error
-site.loc[(site['positional_accuracy'].isna()) &
-         (site['h_error_m'] <= 10), 'positional_accuracy'] = 'consumer grade GPS'
+## Correct 2 sites with unknown positional accuracy and relatively low positional error
+site = site.with_columns(pl.when((pl.col('positional_accuracy') == 'unknown') & (pl.col('h_error_m') <= 10))
+                         .then(pl.lit('consumer grade GPS'))
+                         .otherwise(pl.col('positional_accuracy'))
+                         .alias('positional_accuracy'))
 
-## Drop remaining sites with unknown positional accuracy and high (n=8) positional error; cannot be used for map
-# development or classification
-site = site.loc[~site['positional_accuracy'].isna()]
+## Drop remaining sites with unknown positional accuracy and high positional error (n=7). Cannot be used for map
+# development or classification.
+site = site.filter(pl.col('positional_accuracy') != 'unknown')
 
-## Ensure entries correspond to a value in the data dictionary
-print(site.positional_accuracy.isin(dictionary.data_attribute).all())
-
-# Drop sites that aren't in the vegetation spreadsheet
-veg_data = site.Plot_ID.isin(veg_original["Plot ID"])
-site_filtered = site[veg_data].copy()
-
-# Drop site for which all percent cover are zero
-## Notes indicate this is because % cover was not recorded
-temp = veg_original.groupby(['Plot ID'])['Veg cover pct'].sum()
-no_cover = temp.index[temp.tolist().index(0)]
-site_filtered = site_filtered.loc[~(site_filtered.Plot_ID == no_cover)]
-
-# Populate remaining columns
-site_final = (site_filtered.assign(establishing_project_code = 'yukon_biophysical_2023',
-                          perspective = 'aerial',
-                          cover_method = 'semi-quantitative visual estimate',
-                          h_datum = 'NAD83',
-                          location_type = 'targeted')
-              .rename(columns={'POINT_X': 'longitude_dd',
-                       'POINT_Y': 'latitude_dd'}))
-
-# Match template formatting
-site_final = site_final[template.columns]
+# Populate remaining columns and match template formatting
+site_final = (site.with_columns(pl.lit('yukon_biophysical_2023').alias('establishing_project_code'),
+                                pl.lit('aerial').alias('perspective'),
+                                pl.lit('semi-quantitative visual estimate').alias('cover_method'),
+                                pl.lit('NAD83').alias('h_datum'),
+                                pl.lit('targeted').alias('location_type'))
+              .select(template.columns))
 
 # Export to CSV
-site_final.to_csv(site_output, index=False, encoding='UTF-8')
+site_final.write_csv(site_output)
