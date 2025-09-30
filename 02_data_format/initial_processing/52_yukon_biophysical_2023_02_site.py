@@ -2,11 +2,11 @@
 # ---------------------------------------------------------------------------
 # Format Site table for  Yukon Biophysical Inventory System plot data
 # Author: Amanda Droghini, Alaska Center for Conservation
-# Last Updated: 2025-09-29
+# Last Updated: 2025-09-30
 # Usage: Must be executed in an ArcGIS Pro Python 3.11+ distribution.
 # Description: "Format Site table for Yukon Biophysical Inventory System plot data" extracts relevant
-# information from an ESRI shapefile, re-projects to NAD83, drops sites with missing data, verifies that coordinates
-# are within the map boundary, replaces values with the correct constrained values, and performs QC checks. The
+# information from an ESRI shapefile, re-projects to NAD83, drops sites with missing data, replaces values with the
+# correct constrained values, and performs QC checks. The
 # output is a CSV file that can be used to write a SQL INSERT
 # statement for ingestion into the AKVEG database.
 # ---------------------------------------------------------------------------
@@ -35,16 +35,17 @@ site_output = plot_folder / '02_site_yukonbiophysical2023.csv'
 
 # Read in data
 site_original = gpd.read_file(plot_input)
-veg_original = pl.read_excel(veg_input, columns=["Project ID", "Plot ID", "Scientific name", "Veg cover pct", "Access"])
+veg_original = pl.read_excel(veg_input, columns=["Project ID", "Plot ID", "Veg cover pct", "Access"])
 template = pl.read_excel(template_input)
 
-# Drop sites with no geometry
+# Drop sites with no geometry (n=3015)
+## These are also blank in the 'Plot' spreadsheet
 site_project = site_original[site_original.geometry.notna()]
 
 # Re-project plot data to NAD83
-print(site_project.crs)
 output_crs = 'EPSG:4269'
 site_project = site_project.to_crs(output_crs)
+print(site_project.crs)
 
 # Add XY coordinates
 site_project['longitude_dd'] = site_project.geometry.x
@@ -52,26 +53,24 @@ site_project['latitude_dd'] = site_project.geometry.y
 
 # Explore coordinates
 ## Not particularly useful to intersect with map boundary since ~50% of sites are outside of it. Perform a visual
-# check instead
+# check instead.
 site_project[["longitude_dd", "latitude_dd"]].describe()  ## Values are reasonable
 
 # Convert to polars dataframe
 site = pd.DataFrame(site_project).drop(columns=['geometry'])
 site = pl.from_pandas(site)
 
-# Retain relevant columns
-site = site.select(['Project_ID', 'Plot_ID', 'Survey_dat', 'Plot_type_', 'latitude_dd', 'longitude_dd',
-                                   'Coord_prec', 'Coord_sour'])
+## Ensure Plot IDs are unique as this column will be used for
+# subsequent filtering
+print(site.select("Plot_ID").unique().height == site.height)
 
-print(site.select("Plot_ID","Project_ID").unique().height == site.height)  ## Ensure Plot IDs are unique
-
-# Drop sites that are not for public access
+# Drop sites that are not for public access (n=3102)
 ## Communication with data manager on 2025-09-25: Project IDs 206 and 208 can be made public
 public_sites = veg_original.filter((pl.col("Access") == 'Available to all users.') |
                             (pl.col("Project ID").is_in([206, 208])))
 site = site.join(public_sites, left_on='Plot_ID', right_on='Plot ID', how='semi')
 
-# Drop site for which all percent cover are zero
+# Drop site for which all percent cover are zero (n=1)
 ## Notes indicate this is because % cover was not recorded
 no_cover = (public_sites.group_by('Plot ID')
             .agg(pl.col("Veg cover pct").sum().alias("total_cover"))
@@ -79,47 +78,63 @@ no_cover = (public_sites.group_by('Plot ID')
             .select('Plot ID'))
 site = site.join(no_cover, left_on='Plot_ID', right_on='Plot ID', how='anti')
 
-# Drop sites without enough data
+# Drop sites with unreliable or missing data
 
-## Replace unknown/empty values with NaN
-print(site.null_count())
+## Construct LazyFrame
+lazy_site = site.lazy()
 
-values_to_replace = [' ', 'UNK']
-site = site.with_columns(
-    pl.col(pl.Utf8)  # Select all string (Utf8) columns
-    .replace(values_to_replace, None)
+## Specify chain of operations
+site_chain = (
+    lazy_site
+    # Retain only relevant columns
+    .select(['Project_ID', 'Plot_ID', 'Survey_dat', 'Plot_type_', 'latitude_dd',
+             'longitude_dd', 'Coord_prec', 'Coord_sour'])
+    # Create site code by combining project + plot IDs
+    .with_columns(
+    (pl.col("Project_ID").cast(pl.Utf8) +
+    pl.lit("_") +
+    pl.col("Plot_ID").cast(pl.Utf8))
+    .alias("site_code")
+    )
+    # Replace empty/unknown values to 'unknown' string; prevents nulls from being inadvertently dropped during filtering
+    .with_columns(
+    pl.col(pl.Utf8)
+    .replace(old=[' ', 'UNK', None], new='unknown')
+    )
+    # Combine 'coord source' and 'coord precision' into a single column for easier filtering
+    .with_columns(
+        (pl.col("Coord_sour").cast(pl.Utf8) +
+         pl.lit("_") +
+         pl.col("Coord_prec").cast(pl.Utf8)
+        ).alias("coord_unknown")
+    )
+    # Add 'date' and 'month' columns
+    .with_columns([
+        pl.col("Survey_dat").str.to_date("%Y %b %d").alias('observe_date'),
+        pl.col('observe_date').dt.month().alias('observe_month')
+    ])
+    # Apply filtering conditions
+    .filter(
+        # Drop sites without survey dates (n=1)
+        (pl.col('Survey_dat') != 'unknown')
+        & # Drop sites with only plot + soil data (n=6)
+        (pl.col('Plot_type_') != 'Plot and soil information only')
+        & # Drop coarse minimum mapping unit (n=2678)
+        (~pl.col('Coord_prec').is_in(['MMU50K', 'MMU250K']))
+        & # Drop sites where both coordinate source and precision are unknown (n=1500)
+        (pl.col('coord_unknown') != 'unknown_unknown')
+        & # Drop sites with winter survey months (n=2)
+        ((pl.col('observe_month') >= 4) & (pl.col('observe_month') <= 10))
+    )
 )
 
-## Drop sites without survey dates (n=1)
-## Drop sites with only plot + soil data (no vegetation) (n=6)
-## Drop sites with unknown coordinate precision (n=1500)
-site = (site.drop_nulls(subset=pl.col('Survey_dat'))
-        .filter(pl.col('Plot_type_') != 'Plot and soil information only')
-        .filter(pl.col('Coord_sour').is_not_null() | pl.col('Coord_prec').is_not_null()))
-
-## Drop sites where minimum mapping unit is fairly coarse (1:50,000 and 1:250,000)
-site = site.filter(~pl.col('Coord_prec').is_in(['MMU50K', 'MMU250K']))
-
-# Drop sites with unreliable survey dates (n=2)
-site = site.with_columns(observe_date = pl.col("Survey_dat").str.to_date("%Y %b %d"))
-site = site.with_columns(observe_month = pl.col('observe_date').dt.month())
-site = site.filter((pl.col('observe_month') >= 4) & (pl.col('observe_month') <= 10))
-print(site.select('observe_date').describe())
-print(site.select('observe_month').unique().sort(by='observe_month'))
+site_filtered = site_chain.collect()
 
 # Replace null values
 site = site.with_columns(pl.col('Plot_type_').fill_null(pl.lit('unknown')),
                          pl.col('Coord_prec').fill_null(pl.lit('-999')),
                          pl.col('Coord_sour').fill_null(pl.lit('unknown')))
 print(site.null_count())
-
-# Format site code
-
-## Create combination of project + plot ID for easier retrieval/comparison later on
-site = site.with_columns(
-    (pl.col("Project_ID").cast(pl.Utf8) +
-    pl.lit("_") +
-    pl.col("Plot_ID").cast(pl.Utf8)).alias("site_code"))
 
 # Format horizontal error
 print(site['Coord_prec'].value_counts())
