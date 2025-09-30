@@ -109,10 +109,8 @@ site_chain = (
         ).alias("coord_unknown")
     )
     # Add 'date' and 'month' columns
-    .with_columns([
-        pl.col("Survey_dat").str.to_date("%Y %b %d").alias('observe_date'),
-        pl.col('observe_date').dt.month().alias('observe_month')
-    ])
+    .with_columns(pl.col("Survey_dat").str.to_date("%Y %b %d").alias('observe_date'))
+    .with_columns(pl.col('observe_date').dt.month().alias('observe_month'))
     # Apply filtering conditions
     .filter(
         # Drop sites without survey dates (n=1)
@@ -130,26 +128,22 @@ site_chain = (
 
 site_filtered = site_chain.collect()
 
-# Replace null values
-site = site.with_columns(pl.col('Plot_type_').fill_null(pl.lit('unknown')),
-                         pl.col('Coord_prec').fill_null(pl.lit('-999')),
-                         pl.col('Coord_sour').fill_null(pl.lit('unknown')))
-print(site.null_count())
+# Ensure there are no null values remaining
+with pl.Config(tbl_cols=-1):
+    print(site_filtered.null_count())
 
 # Format horizontal error
-print(site['Coord_prec'].value_counts())
-site = site.with_columns(pl.when(pl.col('Coord_prec') == '>100m')
-                         .then(pl.lit("200"))
-                         .otherwise(pl.col('Coord_prec').str.replace(r"m$", "", literal=False))
-                         .alias('h_error_m'))
-site = site.with_columns(pl.col('h_error_m').str.strip_chars().cast(pl.Int16))  ## Convert to integer
+site_filtered = site_filtered.with_columns(pl.when(pl.col('Coord_prec') == '>100m')
+                                           .then(pl.lit("200"))
+                                           .when(pl.col('Coord_prec') == 'unknown')
+                                           .then(pl.lit("-999"))
+                                           .otherwise(pl.col('Coord_prec').str.replace(r"m$", "", literal=False))
+                                           .alias('h_error_m'))
+site_filtered = site_filtered.with_columns(pl.col('h_error_m').str.strip_chars().cast(pl.Int16))  ## Convert to integer
 
-print(site['h_error_m'].value_counts())
+print(site_filtered['h_error_m'].value_counts())
 
 # Format plot dimensions
-print(site['Plot_type_'].value_counts())
-
-## Create replacement map
 dimensions_map = {
     '20 m diameter': '10 radius',
     '10 m diameter': '5 radius',
@@ -165,12 +159,8 @@ dimensions_map = {
 }
 
 ## Replace values to match constrained values in AKVEG Database
-site = site.with_columns(pl.col('Plot_type_').str.replace_many(dimensions_map)
+site_filtered = site_filtered.with_columns(pl.col('Plot_type_').str.replace_many(dimensions_map)
                          .alias('plot_dimensions_m'))
-
-## Drop sites with unknown plot dimensions
-site = site.filter(pl.col('plot_dimensions_m') != 'unknown')
-print(site['plot_dimensions_m'].value_counts())
 
 # Format positional accuracy
 print(site['Coord_sour'].value_counts())
