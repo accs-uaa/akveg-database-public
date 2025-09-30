@@ -10,6 +10,8 @@ system](#versioning-system).
 
 * **accs_nwisouthcentral_2024**: Add Project, Site, Site Visit, Vegetation Cover, Abiotic Top Cover, and Whole Tussock 
   Cover.
+* **nps_swan_2024** : Replaces nps_swan_2021 (previously private, now public). Abiotic Top Cover was available for 
+    nps_swan_2021, but is not yet available for nps_swan_2024.
 
 ### Removed
 * **Abiotic Top Cover**: Removed data of elements that did not belong to the abiotic element set i.e., animal litter 
