@@ -87,8 +87,11 @@ lazy_site = site.lazy()
 site_chain = (
     lazy_site
     # Retain only relevant columns
-    .select(['Project_ID', 'Plot_ID', 'Survey_dat', 'Plot_type_', 'latitude_dd',
-             'longitude_dd', 'Coord_prec', 'Coord_sour'])
+    .select(['Project_ID', 'Plot_ID',
+             'Survey_dat',
+             'Project_ty', 'Plot_type_',
+             'latitude_dd', 'longitude_dd',
+             'Coord_prec', 'Coord_sour'])
     # Create site code by combining project + plot IDs
     .with_columns(
     (pl.col("Project_ID").cast(pl.Utf8) +
@@ -163,47 +166,43 @@ site_filtered = site_filtered.with_columns(pl.col('Plot_type_').str.replace_many
                          .alias('plot_dimensions_m'))
 
 # Format positional accuracy
-print(site['Coord_sour'].value_counts())
+## Replace values to match constrained values in AKVEG Database
+site_filtered = site_filtered.with_columns(pl.col('Coord_sour').str.replace(r"^[A-Z]GPS$", "consumer grade GPS")
+                                           .str.replace("ORTHOPHOTO1.0", "image interpretation",
+                                                                            literal=True)
+                                           .str.replace(r"^DIGITIZED.*$", "map interpretation")
+                                           .str.replace(r"^MAP.*$", "map interpretation")
+                                           .alias("positional_accuracy"))
 
-## Create replacement map
-accuracy_map = {
-    'NGPS': 'consumer grade GPS',
-    'DGPS': 'consumer grade GPS',
-    'ORTHOPHOTO1.0': 'image interpretation',
-    'DIGITIZED50K': 'map interpretation',
-    'MAP50K': 'map interpretation',
-    'DIGITIZED250K': 'map interpretation',
-    'MAP250K': 'map interpretation',
-}
-
-## Replace values to match constrained values in data dictionary
-site = site.with_columns(pl.col('Coord_sour').str.replace_many(accuracy_map)
-                         .alias('positional_accuracy'))
-site = site.with_columns(pl.col('positional_accuracy').str.replace("MAP", "map interpretation")
-                         .alias('positional_accuracy'))
-
-print(site['positional_accuracy'].value_counts())
-
-## Explore entries with 'unknown' positional accuracy
-unknown_accuracy = site.filter(pl.col('positional_accuracy') == 'unknown')
-print(unknown_accuracy['h_error_m'].value_counts())
+print(site_filtered['positional_accuracy'].value_counts())
 
 ## Correct 2 sites with unknown positional accuracy and relatively low positional error
-site = site.with_columns(pl.when((pl.col('positional_accuracy') == 'unknown') & (pl.col('h_error_m') <= 10))
+site_filtered = site_filtered.with_columns(pl.when((pl.col('positional_accuracy') == 'unknown')
+                                                   & (pl.col('h_error_m') <= 10))
                          .then(pl.lit('consumer grade GPS'))
                          .otherwise(pl.col('positional_accuracy'))
                          .alias('positional_accuracy'))
 
-## Drop remaining sites with unknown positional accuracy and high positional error (n=7). Cannot be used for map
-# development or classification.
-site = site.filter(pl.col('positional_accuracy') != 'unknown')
+## Drop remaining sites with unknown positional accuracy and high positional error (n=7): cannot be used for map
+# development + positional accuracy cannot be unknown
+site_filtered = site_filtered.filter(pl.col('positional_accuracy') != 'unknown')
+
+# Format perspective
+site_filtered = site_filtered.with_columns(pl.when(pl.col('Plot_type_').str.contains('aircraft'))
+                         .then(pl.lit('aerial'))
+                         .otherwise(pl.lit('ground'))
+                         .alias('perspective'))
+
+## Examine ground sites associated with aerial projects (project type=AYBI)
+ground_sites = site_filtered.filter((pl.col('Project_ty') == 'AYBI')
+                                    & (pl.col('perspective') == 'ground')) ## Notes indicate that these were ground
+# sites opportunistically surveyed during aerial work; nothing to change
 
 # Populate remaining columns and match template formatting
-site_final = (site.with_columns(pl.lit('yukon_biophysical_2023').alias('establishing_project_code'),
-                                pl.lit('aerial').alias('perspective'),
-                                pl.lit('semi-quantitative visual estimate').alias('cover_method'),
-                                pl.lit('NAD83').alias('h_datum'),
-                                pl.lit('targeted').alias('location_type'))
+site_final = (site_filtered.with_columns(pl.lit('yukon_biophysical_2023').alias('establishing_project_code'),
+                                         pl.lit('semi-quantitative visual estimate').alias('cover_method'),
+                                         pl.lit('NAD83').alias('h_datum'),
+                                         pl.lit('targeted').alias('location_type'))
               .select(template.columns))
 
 # Export to CSV
