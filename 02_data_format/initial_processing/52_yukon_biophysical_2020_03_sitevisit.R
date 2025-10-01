@@ -24,7 +24,7 @@ root_folder <- "ACCS_Work"
 
 # Define input folders
 project_folder <- path(drive, root_folder, "OneDrive - University of Alaska", "ACCS_Teams", "Vegetation", "AKVEG_Database", "Data")
-plot_folder <- path(project_folder, "Data_Plots", "52_yukon_biophysical_2023")
+plot_folder <- path(project_folder, "Data_Plots", "52_yukon_biophysical_2020")
 source_folder <- path(plot_folder, "source", "ECLDataForAlaska_20240919", "YBIS_Data")
 template_folder <- path(project_folder, "Data_Entry")
 
@@ -32,15 +32,15 @@ template_folder <- path(project_folder, "Data_Entry")
 
 # Define inputs
 visit_input <- path(source_folder, "Plot_2024Apr09.xlsx")
-site_input <- path(plot_folder, "02_site_yukonbiophysical2023.csv")
+site_input <- path(plot_folder, "02_site_yukonbiophysical2020.csv")
 template_input <- path(template_folder, "03_site_visit.xlsx")
 
 # Define output
-visit_output <- path(plot_folder, "03_sitevisit_yukonbiophysical2023.csv")
+visit_output <- path(plot_folder, "03_sitevisit_yukonbiophysical2020.csv")
 
 # Read in data ----
 site_original <- read_csv(site_input, col_select = c("site_code", "establishing_project_code", "perspective"))
-visit_original <- read_xlsx(visit_input, range = "A1:I15124")
+visit_original <- read_xlsx(visit_input, range = "A1:AH15124")
 template <- colnames(read_xlsx(path = template_input))
 
 # Format site code ----
@@ -65,6 +65,7 @@ unique(month(visit_data$observe_date))
 # Create site visit code
 visit_data <- visit_data %>%
   mutate(
+    observe_date = as.character(observe_date),
     date_string = str_replace_all(observe_date, "-", ""),
     site_visit_code = paste(site_code, date_string, sep = "_")
   )
@@ -73,7 +74,7 @@ head(visit_data$site_visit_code)
 
 # Populate remaining columns ----
 visit_final <- visit_data %>%
-  rename(project_code = establishing_project_code) %>% 
+  rename(project_code = establishing_project_code) %>%
   mutate(
     data_tier = "map development & verification",
     veg_observer = "unknown",
@@ -82,24 +83,37 @@ visit_final <- visit_data %>%
     soils_observer = case_when(grepl("Soil", Observers) ~ "unknown",
       .default = "none"
     ),
-    scope_vascular = case_when(perspective == 'ground' ~ 'exhaustive',
-                               perspective == 'aerial' ~ 'top canopy'),
-    scope_bryophyte = case_when(perspective == 'ground' ~ 'common species',
-                                perspective == 'aerial' ~ 'category'),
-    scope_lichen = case_when(perspective == 'ground' ~ 'common species',
-                             perspective == 'aerial' ~ 'category'),
+    scope_vascular = case_when(
+      perspective == "ground" ~ "exhaustive",
+      perspective == "aerial" ~ "top canopy"
+    ),
+    scope_bryophyte = case_when(
+      perspective == "ground" ~ "common species",
+      perspective == "aerial" ~ "category"
+    ),
+    scope_lichen = case_when(
+      perspective == "ground" ~ "common species",
+      perspective == "aerial" ~ "category"
+    ),
     homogeneous = "TRUE",
-    structural_class = "not available"
+    structural_class = case_when(`Vegetation Structure` == "2b" ~ "bryoid herbaceous",
+      `Vegetation Structure` == "3a" & !is.na(`Wetland kind level`) ~ "forb emergent",
+      `Vegetation Structure` == "3b" & !is.na(`Wetland kind level`) ~ "graminoid emergent",
+      `Vegetation Structure` == "3c" ~ "aquatic forb",
+      `Vegetation Structure` == "4a" ~ "tall shrub",
+      `Vegetation Structure` == "4b" ~ "low shrub",
+      .default = "not available"
+    )
   ) %>%
   select(all_of(template))
 
 # Do any of the columns have null values that need to be addressed?
-cbind(
+print(cbind(
   lapply(
     lapply(visit_final, is.na),
     sum
   )
-)
+))
 
 # Export as CSV ----
 write_csv(visit_final, visit_output)
