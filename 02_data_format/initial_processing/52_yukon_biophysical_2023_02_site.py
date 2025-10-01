@@ -22,7 +22,7 @@ drive = Path('C:/')
 root_folder = drive / 'ACCS_Work'
 
 project_folder = root_folder / 'OneDrive - University of Alaska/ACCS_Teams/Vegetation/AKVEG_Database' / 'Data'
-plot_folder = project_folder / 'Data_Plots' / '52_yukon_biophysical_2023'
+plot_folder = project_folder / 'Data_Plots' / '52_yukon_biophysical_2020'
 source_folder = plot_folder / 'source' / 'ECLDataForAlaska_20240919' / 'YBIS_Data'
 
 # Define inputs
@@ -31,7 +31,7 @@ veg_input = source_folder / 'Veg_2024Apr09.xlsx'
 template_input = project_folder / 'Data_Entry' / '02_site.xlsx'
 
 # Define output
-site_output = plot_folder / '02_site_yukonbiophysical2023.csv'
+site_output = plot_folder / '02_site_yukonbiophysical2020.csv'
 
 # Read in data
 site_original = gpd.read_file(plot_input)
@@ -199,7 +199,7 @@ ground_sites = site_filtered.filter((pl.col('Project_ty') == 'AYBI')
 # sites opportunistically surveyed during aerial work; nothing to change
 
 # Populate remaining columns and match template formatting
-site_final = (site_filtered.with_columns(pl.lit('yukon_biophysical_2023').alias('establishing_project_code'),
+site_final = (site_filtered.with_columns(pl.lit('yukon_biophysical_2020').alias('establishing_project_code'),
                                          pl.lit('semi-quantitative visual estimate').alias('cover_method'),
                                          pl.lit('NAD83').alias('h_datum'),
                                          pl.lit('targeted').alias('location_type'))
