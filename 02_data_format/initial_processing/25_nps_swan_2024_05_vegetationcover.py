@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # "Calculate Vegetation Cover for 2024 NPS SWAN data"
 # Author: Amanda Droghini
-# Last Updated: 2025-09-22
+# Last Updated: 2025-10-01
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Calculate Vegetation Cover for 2024 NPS SWAN data" uses data from line-point intercept surveys to
 # calculate site-level percent foliar cover for each recorded species. It also appends unique site visit identifiers,
@@ -147,7 +147,7 @@ replace_codes = {"BEDU": "Betula cf. occidentalis",
  "CR": "biotic soil crust",
  "DLI": "lichen",
  "DM": "moss",
- "DROC": "Dryas",
+ "DROC": "Dryas ajanensis ssp. beringensis",
  "FUNGI": "fungus",
  "MO": "moss",
  "SD": "unknown",
