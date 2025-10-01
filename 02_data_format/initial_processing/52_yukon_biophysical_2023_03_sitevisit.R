@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------------
-# "Format Site Visit Table for Yukon Biophysical Inventory Data System Plots"
+# "Format Site Visit Table for Yukon Biophysical Inventory System Plots"
 # Author: Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2025-06-17
-# Usage: Must be executed in R version 4.4.3+.
-# Description: "Format Site Visit Table for Yukon Biophysical Inventory Data System Plots" formats information about site visits for ingestion into the AKVEG Database. The script formats dates, creates site visit codes, parses personnel names, re-classifies structural class data, populates required metadata, and performs QA/QC checks. The output is a CSV table that can be converted and included in a SQL INSERT statement.
+# Last Updated: 2025-09-30
+# Usage: Must be executed in R version 4.5.1+.
+# Description: "Format Site Visit Table for Yukon Biophysical Inventory System Plots" formats information about site visits for ingestion into the AKVEG Database. The script formats dates, creates site visit codes, parses personnel names, re-classifies structural class data, populates required metadata, and performs QC checks. The output is a CSV table that can be converted and included in a SQL INSERT statement.
 # ---------------------------------------------------------------------------
 
 # Load packages ----
