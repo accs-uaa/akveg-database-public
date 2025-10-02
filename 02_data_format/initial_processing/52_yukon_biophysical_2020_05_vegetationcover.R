@@ -129,14 +129,15 @@ veg_taxa <- veg_taxa %>%
     name_original == "Cardamine oligosperma" ~ "Cardamine umbellata",
     name_original == "Carex x flavicans" ~ "Carex subspathacea",
     name_original == "Chrysanthemum" ~ "forb",
-    name_original == 'Cratoneuron arcticum' ~ 'Hygroamblystegium varium',
+    name_original == "Cratoneuron arcticum" ~ "Hygroamblystegium varium",
     name_original == "Cryptogramma crispa var." ~ "Cryptogramma acrostichoides",
     name_original == "Draba alpina" ~ "Draba",
     name_original == "Dryas octopetala" ~ "Dryas ajanensis ssp. beringensis",
     grepl("Elyhordeum", Scientific.name) & is.na(name_adjudicated) ~ "grass (Poaceae)",
     name_original == "Eriophorum vaginatum ssp. vaginatum" ~ "Eriophorum vaginatum",
     name_original == "Galium labradoricum" ~ "Galium",
-    name_original %in% ("Lagotis glauca ssp. minor", "Lagotis stelleri") ~ "Lagotis glauca ssp. lanceolata",
+    name_original %in% c("Lagotis glauca ssp. minor", "Lagotis stelleri") ~ "Lagotis glauca ssp. lanceolata",
+    name_original == "Minuartia" ~ "forb",
     name_original == "Myriophyllum spicatum" ~ "Myriophyllum sibiricum",
     name_original == "Melandrium apetalum" ~ "Silene uralensis",
     name_original == "Oxytropis borealis var. hudsonica" ~ "Oxytropis borealis",
@@ -150,24 +151,12 @@ veg_taxa <- veg_taxa %>%
     name_original == "Saxifraga bronchialis" ~ "Saxifraga funstonii",
     name_original == "Saxifraga davurica" ~ "Micranthes",
     name_original == "Scirpus caespitosus" ~ "Trichophorum cespitosum",
-    name_original == "Senecio fuscatus" ~ "Tephroseris lindstroemii",
     name_original == "Silene acaulis ssp. acaulis" ~ "Silene acaulis",
+    name_original == "Taraxacum lyratum" ~ "Taraxacum scopulorum",
     name_original == "Xanthoria" ~ "lichen",
     name_original == "Vaccinium microcarpum" ~ "Oxycoccus microcarpus",
+    name_original == "Vaccinium oxycoccos" ~ "Oxycoccus microcarpus",
     name_original == "Xanthoparmelia chlorochroa" ~ "Xanthoparmelia",
-    .default = name_adjudicated
-  ))
-
-# Address plant codes that require new taxonomy to be added
-
-## Should this be applied to name_original???
-veg_taxa <- veg_taxa %>%
-  mutate(name_adjudicated = case_when(
-    grepl("^Minuartia", Scientific.name) & is.na(name_adjudicated) ~ "forb",
-    Scientific.name == "Picea glauca x mariana" ~ "Picea",
-    Scientific.name == "Stipa sp." ~ "Hesperostipa comata",
-    Scientific.name == "Smelowskia calycina (split)" ~ "Smelowskia",
-    Scientific.name == "Taraxacum lyratum" ~ "Taraxacum scopulorum",
     .default = name_adjudicated
   ))
 
