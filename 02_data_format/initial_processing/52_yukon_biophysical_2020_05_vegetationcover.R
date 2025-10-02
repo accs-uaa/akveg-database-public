@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # "Format Vegetation Cover for Yukon Biophysical Inventory System Plots"
 # Author: Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2025-10-01
+# Last Updated: 2025-10-02
 # Usage: Must be executed in R version 4.5.1+.
 # Description: "Format Vegetation Cover for Yukon Biophysical Inventory System Plots" formats vegetation cover data for ingestion into the AKVEG Database. The script appends unique site visit identifiers, corrects taxonomic names using the AKVEG comprehensive checklist, and enforces formatting to match the AKVEG template. The output is a CSV table that can be converted and included in a SQL INSERT statement.
 # ---------------------------------------------------------------------------
@@ -24,7 +24,7 @@ root_folder <- "ACCS_Work"
 
 # Define input folders
 project_folder <- path(drive, root_folder, "OneDrive - University of Alaska", "ACCS_Teams", "Vegetation", "AKVEG_Database")
-plot_folder <- path(project_folder, "Data", "Data_Plots", "52_yukon_biophysical_2023")
+plot_folder <- path(project_folder, "Data", "Data_Plots", "52_yukon_biophysical_2020")
 template_folder <- path(project_folder, "Data", "Data_Entry")
 source_folder <- path(plot_folder, "source", "ECLDataForAlaska_20240919", "YBIS_Data")
 
@@ -37,12 +37,12 @@ credential_folder <- path(project_folder, "Credentials", "akveg_public_read")
 # Define datasets ----
 
 # Define input datasets
-visit_input <- path(plot_folder, "03_sitevisit_yukonbiophysical2023.csv")
+visit_input <- path(plot_folder, "03_sitevisit_yukonbiophysical2020.csv")
 veg_input <- path(source_folder, "Veg_2024Apr09.xlsx")
 template_input <- path(template_folder, "05_vegetation_cover.xlsx")
 
 # Define output dataset
-veg_output <- path(plot_folder, "05_vegetationcover_yukonbiophysical2023.csv")
+veg_output <- path(plot_folder, "05_vegetationcover_yukonbiophysical2020.csv")
 
 # Define credentials file
 authentication <- path(credential_folder, "authentication_akveg_public_read.csv")
