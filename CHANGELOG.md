@@ -30,8 +30,6 @@ system](#versioning-system).
 
 ### Fixed
 * **Abiotic Top Cover**: Added missing elements for each site visit record and assigned them a cover percent of 0%.
-* Updated location of compile scripts to correctly point to the current repository (akveg-database-public) rather 
-  than the archived akveg-database.
 
 ## [2.1.1] 2025-09-24
 
