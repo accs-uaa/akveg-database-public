@@ -2,8 +2,8 @@
 -- ---------------------------------------------------------------------------
 -- Build metadata and constraint tables
 -- Author: Timm Nawrocki, Alaska Center for Conservation Science
--- Last Updated: 2024-02-03
--- Usage: Script should be executed in a PostgreSQL 14+ database.
+-- Last Updated: 2025-09-24
+-- Usage: Script should be executed in a PostgreSQL 17+ database.
 -- Description: "Build metadata and constraint tables" creates the empty tables for the metadata components of the AKVEG database, including the schema and data dictionary. WARNING: THIS SCRIPT WILL ERASE ALL DATA IN EXISTING METADATA TABLES.
 -- ---------------------------------------------------------------------------
 
@@ -97,7 +97,8 @@ CREATE TABLE geomorphology (
 );
 CREATE TABLE ground_element (
     ground_element_code varchar(2) PRIMARY KEY,
-    ground_element varchar(50) UNIQUE NOT NULL
+    ground_element varchar(50) UNIQUE NOT NULL,
+    element_type varchar(7) NOT NULL
 );
 CREATE TABLE h_datum (
     h_datum_epsg integer PRIMARY KEY,
