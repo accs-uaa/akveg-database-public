@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Format 2024 ACCS NWI Southcentral Site Visit Data
 # Author: Amanda Droghini
-# Last Updated: 2025-09-24
+# Last Updated: 2025-10-28
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Format 2024 ACCS NWI Southcentral Site Visit Data" formats information about site visits for
 # ingestion into AKVEG Database. The script verifies the data for completeness, ensures that all constrained values
@@ -71,9 +71,11 @@ print(visit_original['site_visit_code'].is_unique().unique())
 print(visit_original.select('observe_date').describe())
 print(visit_original['observe_date'].str.to_date("%Y-%m-%d").dt.month().unique())
 
-# Correct columns: project code, env_observer, homogenous
+# Correct columns: project code, data_tier, env_observer, homogenous
 visit = (visit_original.with_columns(pl.lit('accs_nwisouthcentral_2024').alias('project_code'),
-                                     pl.lit('none').alias('env_observer'))  ## environment data not collected
+                                     pl.lit('map development & verification').alias('data_tier'),
+                                     pl.lit('none').alias('env_observer'))  ## environment data
+         # not collected
          .rename({'homogenous': 'homogeneous'}))
 
 # Verify that values match constrained values
