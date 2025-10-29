@@ -32,7 +32,6 @@ root_folder = drive / 'ACCS_Work'
 project_folder = root_folder / 'OneDrive - University of Alaska/ACCS_Teams' / 'Vegetation' / 'AKVEG_Database' / 'Data'
 plot_folder = project_folder / 'Data_Plots' / '44_aim_various_2023'
 template_folder = project_folder / 'Data_Entry'
-repository_folder = root_folder / 'Repositories' / 'akveg-database-public'
 
 # Define inputs
 site_input = plot_folder / 'working' / '44_aim_2023_site_export.csv'
