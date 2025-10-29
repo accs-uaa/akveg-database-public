@@ -45,7 +45,7 @@ Create the SQL dump from the target_database using the following command:
 gcloud sql export sql target-instance gs://database_export/sqldumpfile.gz --database=target_database
 ```
 
-If the target database already exists, remove it.
+If the replica database already exists, remove it.
 
 ```
 gcloud sql databases delete replica_database --instance=target-instance, -i target-instance
