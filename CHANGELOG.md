@@ -7,20 +7,31 @@ system](#versioning-system).
 ## Unreleased
 
 ### Added
+* **yukon_biophysical_2020**: Replaces yukon_biophysical_2015 and yukon_landcover_2016 (previously private, now 
+  public). Add Project, Site, 
+  Site Visit, and Vegetation Cover.
+* **aim_various_2023**: Replaces aim_various_2022.
+
+## [2.2.0] - 2025-10-28
+
+### Added
 
 * **accs_nwisouthcentral_2024**: Add Project, Site, Site Visit, Vegetation Cover, Abiotic Top Cover, and Whole Tussock 
   Cover.
 * **nps_swan_2024**: Replaces nps_swan_2021 (previously private, now public). Add Project, Site, Site Visit, and 
   Vegetation Cover. Abiotic Top Cover was available for nps_swan_2021, but is not yet available for nps_swan_2024.
-* **yukon_biophysical_2020**: Replaces yukon_biophysical_2015 (previously private, now public). Add Project, Site, 
-  Site Visit, and Vegetation Cover.
 
 ### Removed
 * **Abiotic Top Cover**: Removed data of elements that did not belong to the abiotic element set i.e., animal litter 
   and biotic.
+* **yukon_biophysical_2015** [private] and **yukon_landcover_2016** [private]: Will be replaced by a newer, public 
+  version 
+  of the data that includes plots up until 2020.
 
 ### Fixed
 * **Abiotic Top Cover**: Added missing elements for each site visit record and assigned them a cover percent of 0%.
+* Updated location of compile scripts to correctly point to the current repository (akveg-database-public) rather 
+  than the archived akveg-database.
 
 ## [2.1.1] 2025-09-24
 
