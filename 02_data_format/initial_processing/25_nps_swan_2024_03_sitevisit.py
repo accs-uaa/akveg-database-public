@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Format 2024 NPS SWAN Site Visit Data
 # Author: Amanda Droghini
-# Last Updated: 2025-09-17
+# Last Updated: 2025-10-28
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Format 2024 NPS SWAN Site Visit Data" formats information about site visits for ingestion into the
 # AKVEG Database. The script formats dates, creates site visit codes,
@@ -51,7 +51,8 @@ visit = visit.with_columns(site_visit_code = pl.concat_str([pl.col('Plot'),pl.co
 visit = visit.join(site_original, how='right', left_on='Plot', right_on='site_code')
 
 # Drop site visits not included in Vegetation Cover table
-vegetation = vegetation_original.with_columns(observe_date = pl.col('Sample_Date').str.to_date("%m/%d/%Y"))
+vegetation = vegetation_original.unique(subset=['Plot', 'Sample_Date'])
+vegetation = vegetation.with_columns(observe_date = pl.col('Sample_Date').str.to_date("%m/%d/%Y"))
 vegetation = vegetation.with_columns(date_string = pl.col('observe_date').dt.to_string().str.replace_all("-", ""))
 vegetation = vegetation.with_columns(site_visit_code = pl.concat_str([pl.col('Plot'),pl.col('date_string')],
                                                                      separator="_"))
