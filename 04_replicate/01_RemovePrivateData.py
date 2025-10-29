@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Remove private data from AKVEG Database
 # Author: Timm Nawrocki
-# Last Updated: 2024-05-09
+# Last Updated: 2025-10-28
 # Usage: Execute in Python 3.10+.
 # Description: "Remove private data from AKVEG Database" retracts private data from all data tables to create a fully public version of the database.
 # ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ root_folder = 'ACCS_Work/OneDrive - University of Alaska/ACCS_Teams/Vegetation/A
 
 # Define folder structure
 credential_folder = os.path.join(drive, root_folder, 'Credentials')
-repository_folder = os.path.join(drive, 'ACCS_Work/Repositories/akveg-database')
+repository_folder = os.path.join(drive, 'ACCS_Work/Repositories/akveg-database-public')
 
 # Define input files
 authentication_file = os.path.join(credential_folder, 'akveg_public_build/authentication_akveg_public_build.csv')
