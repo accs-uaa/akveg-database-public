@@ -66,9 +66,11 @@ print(sites_outside.shape[0]) ## All sites are within map boundary
 
 del site_spatial, sites_inside, sites_outside, region_boundary
 
-# Correct project code and datum
-site = site_original.with_columns(establishing_project_code = pl.lit('accs_nwisouthcentral_2024'),
-                                  h_datum = pl.lit('NAD83'))
+# Correct project code, datum, and plot dimensions
+site = site_original.with_columns(pl.lit('accs_nwisouthcentral_2024').alias('establishing_project_code'),
+                                  pl.lit('NAD83').alias('h_datum'),
+                                  pl.lit('10 radius').alias('plot_dimensions_m')
+                                  )
 
 # Export as CSV
 site.write_csv(site_output)
