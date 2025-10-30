@@ -12,15 +12,19 @@ AKVEG Database.
 Functions included:
 1. filter_sites_in_alaska: Filter plots that aren't within the map boundary (Alaska and adjacent Canada)
 and re-project coordinates of included sites to NAD83.
+2. plot_survey_dates: Create a bar chart (histogram) displaying the distribution of survey dates across sites.
+Facilitates detection of temporal outliers.
 """
 
 # Import packages
 import geopandas as gpd
 import numpy as np
-import pandas as pd
+import plotly.express as px
 import polars as pl
-from typing import Union
 import os
+from typing import Union
+from plotly.graph_objects import Figure
+
 
 # Define file path for the map boundary
 BOUNDARY_PATH = os.path.join("C:/", "ACCS_Work", "Projects", "AKVEG_Map", "Data", "region_data",
@@ -114,3 +118,42 @@ def filter_sites_in_alaska(
     )
 
     return sites_inside_df
+
+# --- Function 2 ---
+def plot_survey_dates(
+        visit_df: pl.DataFrame,
+        date_col: str = "observe_date",
+        title: str = "Distribution of Survey Dates"
+) -> Figure:
+    """
+    Generates a Plotly bar chart (histogram) shoiwing the frequency of survey dates.
+
+    :param visit_df: The input Polars DataFrame containing site visit dates.
+    :param date_col: The name of the column with the observation dates.
+    :param title: The title of the Plotly figure.
+    :return: A Plotly Figure object.
+    """
+
+    # 1. Count number of occurrences per date
+    hist_data = (
+        visit_df.select(pl.col(date_col).cast(pl.Date).alias(date_col))
+        .group_by(date_col)
+        .agg(
+            pl.len().alias("Count")
+        )
+        .sort(date_col)  # Sort for proper plotting
+    )
+
+    # 2. Create bar chart
+    fig = px.bar(
+        hist_data.to_pandas(),
+        x=date_col,
+        y="Count",
+        title=title,
+        labels={date_col: "Survey Date"}  # Set the x-axis label
+    )
+
+    # 3. Style and return Figure object
+    fig.update_traces(marker_line_width=1, marker_line_color="black")
+
+    return fig
