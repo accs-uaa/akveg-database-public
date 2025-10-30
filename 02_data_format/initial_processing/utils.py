@@ -2,18 +2,20 @@
 # ---------------------------------------------------------------------------
 # utils.py
 # Author: Amanda Droghini
-# Last Updated: 2025-10-29
+# Last Updated: 2025-10-30
 # ---------------------------------------------------------------------------
 
 """
 This module provides a collection of utility functions to support the processing and ingestion of datasets into the
 AKVEG Database.
 
-Functions included:
+Functions include:
 1. filter_sites_in_alaska: Filter plots that aren't within the map boundary (Alaska and adjacent Canada)
 and re-project coordinates of included sites to NAD83.
 2. plot_survey_dates: Create a bar chart (histogram) displaying the distribution of survey dates across sites.
 Facilitates detection of temporal outliers.
+3. get_taxonomy: Queries the AKVEG Database to obtain all taxonomic names in the AKVEG Comprehensive Checklist and
+their corresponding accepted name.
 """
 
 # Import packages
@@ -22,13 +24,18 @@ import numpy as np
 import plotly.express as px
 import polars as pl
 import os
+from akutils import connect_database_postgresql
+from akutils import query_to_dataframe
 from typing import Union
 from plotly.graph_objects import Figure
-
 
 # Define file path for the map boundary
 BOUNDARY_PATH = os.path.join("C:/", "ACCS_Work", "Projects", "AKVEG_Map", "Data", "region_data",
                               "AlaskaYukon_MapDomain_3338.shp")
+
+# Define database credential file
+CREDENTIAL_FILE = os.path.join("C:/", "ACCS_Work", 'OneDrive - University of Alaska', 'ACCS_Teams', 'Vegetation',
+                                 'AKVEG_Database', 'Credentials', 'akveg_public_read', 'authentication_akveg_public_read.csv')
 
 # --- Function 1 ---
 def filter_sites_in_alaska(
@@ -157,3 +164,61 @@ def plot_survey_dates(
     fig.update_traces(marker_line_width=1, marker_line_color="black")
 
     return fig
+
+# --- Function 3 ---
+def get_taxonomy(
+        credential_file: str = CREDENTIAL_FILE
+) -> Union[pl.DataFrame, None]:
+    """
+    Queries the AKVEG Database taxonomy table.
+
+    Args:
+        credential_file: A string and valid file path that contains the credentials for authenticating to the AKVEG
+        Database.
+
+    Returns:
+        A Polars dataframe with all synonymized names and their accepted names.
+    """
+    # --- Validate input ---
+    if not os.path.exists(credential_file):
+        print(f"ERROR: Database credential file not found at: {credential_file}")
+        return None
+
+    # 1. Connect to database
+    akveg_db_connection = connect_database_postgresql(credential_file)
+
+    # --- Validate database connection ---
+    if akveg_db_connection is None:
+        print("ERROR: Could not establish database connection.")
+        return None
+
+    try:
+        # 2. Query database for taxonomy checklist
+        taxonomy_query = """SELECT taxon_all.taxon_code, taxon_all.taxon_name, taxon_all.taxon_accepted_code
+                    FROM taxon_all;"""
+
+        # 3. Obtain full synonymized checklist
+        taxonomy_original = query_to_dataframe(akveg_db_connection, taxonomy_query)
+        taxonomy_original = pl.from_pandas(taxonomy_original)
+
+        # 4. Create table with accepted names only
+        taxonomy_accepted = (
+            taxonomy_original.filter(pl.col("taxon_code") == pl.col("taxon_accepted_code"))
+            .rename({"taxon_name": "name_adjudicated"})
+            .drop("taxon_code")
+        )
+
+        # 5. Include accepted name in synonymized checklist
+        taxonomy_akveg = (taxonomy_original.join(taxonomy_accepted, on='taxon_accepted_code', how='left')
+                          .drop(["taxon_code", "taxon_accepted_code"])
+                          )
+
+        return taxonomy_akveg
+
+    except Exception as e:
+        print(f"An error occurred during query or processing: {e}")
+        return None
+
+    finally:
+        # 6. Close the database connection
+        akveg_db_connection.close()
