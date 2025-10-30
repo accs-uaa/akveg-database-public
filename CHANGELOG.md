@@ -13,6 +13,9 @@ system](#versioning-system).
   public). Add Project, Site, Site Visit, and Vegetation Cover.
 * **aim_various_2023**: Replaces aim_various_2022.
 
+### Fixed
+* **accs_nwisouthcentral_2024**: Corrected plot dimensions for all plots to 10 radius.
+
 ## [2.2.0] - 2025-10-28
 
 ### Added
