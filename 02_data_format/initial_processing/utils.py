@@ -16,6 +16,8 @@ and re-project coordinates of included sites to NAD83.
 Facilitates detection of temporal outliers.
 3. get_taxonomy: Queries the AKVEG Database to obtain all taxonomic names in the AKVEG Comprehensive Checklist and
 their corresponding accepted name.
+4. get_usda_codes: Removes author names from accepted scientific names for USDA plant codes. The resulting cleaned
+column can now be joined with the scientific names in the AKVEG Database without further processing.
 """
 
 # Import packages
@@ -31,11 +33,19 @@ from plotly.graph_objects import Figure
 
 # Define file path for the map boundary
 BOUNDARY_PATH = os.path.join("C:/", "ACCS_Work", "Projects", "AKVEG_Map", "Data", "region_data",
-                              "AlaskaYukon_MapDomain_3338.shp")
+                             "AlaskaYukon_MapDomain_3338.shp")
+
+# Define project folder
+PROJECT_FOLDER = os.path.join("C:/", "ACCS_Work", 'OneDrive - University of Alaska', 'ACCS_Teams', 'Vegetation',
+                              'AKVEG_Database')
 
 # Define database credential file
-CREDENTIAL_FILE = os.path.join("C:/", "ACCS_Work", 'OneDrive - University of Alaska', 'ACCS_Teams', 'Vegetation',
-                                 'AKVEG_Database', 'Credentials', 'akveg_public_read', 'authentication_akveg_public_read.csv')
+CREDENTIAL_FILE = os.path.join(PROJECT_FOLDER, 'Credentials', 'akveg_public_read',
+                               'authentication_akveg_public_read.csv')
+
+# Define USDA Plants file
+USDA_CODES_FILE = os.path.join(PROJECT_FOLDER, 'Data', "Tables_Taxonomy", "USDA_Plants", "USDA_Plants_20240301.csv")
+
 
 # --- Function 1 ---
 def filter_sites_in_alaska(
@@ -126,6 +136,7 @@ def filter_sites_in_alaska(
 
     return sites_inside_df
 
+
 # --- Function 2 ---
 def plot_survey_dates(
         visit_df: pl.DataFrame,
@@ -164,6 +175,7 @@ def plot_survey_dates(
     fig.update_traces(marker_line_width=1, marker_line_color="black")
 
     return fig
+
 
 # --- Function 3 ---
 def get_taxonomy(
@@ -222,3 +234,44 @@ def get_taxonomy(
     finally:
         # 6. Close the database connection
         akveg_db_connection.close()
+
+
+# --- Function 4 ---
+def get_usda_codes(
+        usda_file: str = USDA_CODES_FILE
+) -> pl.DataFrame:
+    """
+    Processes the USDA Plants file to remove author names from accepted names.
+    :param usda_file: A string and valid file path that contains a list of USDA plant codes.
+    :return: A Polars dataframe with all USDA Plants code and their accepted names without author names.
+    """
+
+    codes_lazy = pl.scan_csv(usda_file, null_values="")
+
+    plant_codes = (
+        codes_lazy
+        .select(["Symbol", "Synonym Symbol", "Scientific Name with Author"])
+
+        # Replace null values
+        .with_columns(pl.when(pl.col("Synonym Symbol").is_null())
+                      .then(pl.col("Symbol"))
+                      .otherwise(pl.col("Synonym Symbol"))
+                      .alias("usda_code")
+                      )
+
+        # Remove author name
+        .with_columns(pl.col("Scientific Name with Author")
+                      .str.replace("L.", "")
+                      .str.replace_all(r"\s+", " ")
+                      .str.extract(r"^(.*?)(?:\s[A-Z]\.|\s[A-Z]|\s\(.*|$)", 1)
+                      .str.strip_chars()
+                      .alias("name_original"))
+
+        # Select only desired columns
+        ## Retain original name column for trouble-shooting
+        .select(["usda_code", "name_original", "Scientific Name with Author"])
+
+        .collect()
+    )
+
+    return plant_codes
