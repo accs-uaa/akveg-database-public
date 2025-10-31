@@ -261,7 +261,7 @@ def get_usda_codes(
 
         # Remove author name
         .with_columns(pl.col("Scientific Name with Author")
-                      .str.replace("L.", "")
+                      .str.replace(r"L\.", "")
                       .str.replace_all(r"\s+", " ")
                       .str.extract(r"^(.*?)(?:\s[A-Z]\.|\s[A-Z]|\s\(.*|$)", 1)
                       .str.strip_chars()
