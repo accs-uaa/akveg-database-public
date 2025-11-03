@@ -29,7 +29,7 @@ import polars as pl
 import os
 from akutils import connect_database_postgresql
 from akutils import query_to_dataframe
-from typing import Union
+from typing import Union, Literal
 from plotly.graph_objects import Figure
 
 # Define file path for the map boundary
@@ -47,6 +47,9 @@ CREDENTIAL_FILE = os.path.join(PROJECT_FOLDER, 'Credentials', 'akveg_public_read
 # Define USDA Plants file
 USDA_CODES_FILE = os.path.join(PROJECT_FOLDER, 'Data', "Tables_Taxonomy", "USDA_Plants", "USDA_Plants_20240301.csv")
 
+# Define allowed element type values
+ElementTypes = Literal["all", "ground", "abiotic"]
+VALID_ELEMENT_TYPES = {"all", "ground", "abiotic"}  # For validating input during runtime
 
 # --- Function 1 ---
 def filter_sites_in_alaska(
@@ -279,7 +282,8 @@ def get_usda_codes(
 
 # --- Function 5 ---
 def get_abiotic_elements(
-        credential_file: str = CREDENTIAL_FILE
+        credential_file: str = CREDENTIAL_FILE,
+        element_type: ElementTypes = "all"
 ) -> Union[pl.DataFrame, None]:
     """
     Queries the AKVEG Database ground cover table.
@@ -287,6 +291,8 @@ def get_abiotic_elements(
     Args:
         credential_file: A string and valid file path that contains the credentials for authenticating to the AKVEG
         Database.
+        element_type: A string literal that identifies what type of element to return. Must be one of the following
+        values: "all", "ground", or "abiotic".
 
     Returns:
         A Polars dataframe with all abiotic elements and their element type (abiotic, ground, or both).
@@ -295,6 +301,13 @@ def get_abiotic_elements(
     if not os.path.exists(credential_file):
         print(f"ERROR: Database credential file not found at: {credential_file}")
         return None
+
+    if element_type not in VALID_ELEMENT_TYPES:
+        allowed_values = ", ".join(sorted(VALID_ELEMENT_TYPES))
+        raise ValueError(
+            f"Invalid value for 'element_type': '{element_type}'. "
+            f"Argument must be one of: {allowed_values}."
+        )
 
     # 1. Connect to database
     akveg_db_connection = connect_database_postgresql(credential_file)
@@ -310,10 +323,19 @@ def get_abiotic_elements(
                     FROM ground_element;"""
 
         # 3. Convert to Polars dataframe
-        abiotic_original = query_to_dataframe(akveg_db_connection, abiotic_query)
-        abiotic_original = pl.from_pandas(abiotic_original)
+        all_elements = query_to_dataframe(akveg_db_connection, abiotic_query)
+        all_elements = pl.from_pandas(all_elements)
 
-        return abiotic_original
+        # 4. Subset based on element type
+        ground_elements = all_elements.filter(pl.col("element_type") != "abiotic")
+        abiotic_elements = all_elements.filter(pl.col("element_type") != "ground")
+
+        if element_type == "abiotic":
+            return abiotic_elements
+        elif element_type == "ground":
+            return ground_elements
+        else:
+            return all_elements
 
     except Exception as e:
         print(f"An error occurred during query or processing: {e}")
