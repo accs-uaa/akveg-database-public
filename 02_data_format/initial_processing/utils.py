@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # utils.py
 # Author: Amanda Droghini
-# Last Updated: 2025-10-30
+# Last Updated: 2025-11-03
 # ---------------------------------------------------------------------------
 
 """
@@ -18,6 +18,7 @@ Facilitates detection of temporal outliers.
 their corresponding accepted name.
 4. get_usda_codes: Removes author names from accepted scientific names for USDA plant codes. The resulting cleaned
 column can now be joined with the scientific names in the AKVEG Database without further processing.
+5. get_abiotic_elements: Queries the AKVEG Database to obtain abiotic/ground elements and their element type.
 """
 
 # Import packages
@@ -275,3 +276,49 @@ def get_usda_codes(
     )
 
     return plant_codes
+
+# --- Function 5 ---
+def get_abiotic_elements(
+        credential_file: str = CREDENTIAL_FILE
+) -> Union[pl.DataFrame, None]:
+    """
+    Queries the AKVEG Database ground cover table.
+
+    Args:
+        credential_file: A string and valid file path that contains the credentials for authenticating to the AKVEG
+        Database.
+
+    Returns:
+        A Polars dataframe with all abiotic elements and their element type (abiotic, ground, or both).
+    """
+    # --- Validate input ---
+    if not os.path.exists(credential_file):
+        print(f"ERROR: Database credential file not found at: {credential_file}")
+        return None
+
+    # 1. Connect to database
+    akveg_db_connection = connect_database_postgresql(credential_file)
+
+    # --- Validate database connection ---
+    if akveg_db_connection is None:
+        print("ERROR: Could not establish database connection.")
+        return None
+
+    try:
+        # 2. Query database for abiotic elements
+        abiotic_query = """SELECT ground_element.ground_element, ground_element.element_type
+                    FROM ground_element;"""
+
+        # 3. Convert to Polars dataframe
+        abiotic_original = query_to_dataframe(akveg_db_connection, abiotic_query)
+        abiotic_original = pl.from_pandas(abiotic_original)
+
+        return abiotic_original
+
+    except Exception as e:
+        print(f"An error occurred during query or processing: {e}")
+        return None
+
+    finally:
+        # 6. Close the database connection
+        akveg_db_connection.close()
