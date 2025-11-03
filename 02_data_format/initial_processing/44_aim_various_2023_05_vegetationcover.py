@@ -6,8 +6,8 @@
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Format Vegetation Cover Table for BLM AIM Various 2023 data" uses data from line-point intercept surveys
 # to calculate site-level percent foliar cover for each recorded species. It also appends unique site visit
-# identifiers, corrects taxonomic names using the AKVEG database as a taxonomic standard, populates required
-# metadata fields, and performs QA/QC checks. The script depends on the output from the
+# identifiers, corrects taxonomic names using the AKVEG Comprehensive Checklist as a taxonomic standard,
+# populates required metadata fields, and performs QC checks. The script depends on the output from the
 # 44_aim_various_2023_00_extract_data.py script. The output is a CSV table that can be converted and included in a
 # SQL INSERT statement.
 # ---------------------------------------------------------------------------
