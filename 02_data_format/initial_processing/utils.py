@@ -274,8 +274,7 @@ def get_usda_codes(
                       .alias("name_original"))
 
         # Select only desired columns
-        ## Retain original name column for trouble-shooting
-        .select(["usda_code", "name_original", "Scientific Name with Author"])
+        .select(["usda_code", "name_original"])
 
         .collect()
     )
