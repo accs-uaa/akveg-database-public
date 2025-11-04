@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Format NRCS Alaska 2024 Site & Site Visit Data
 # Author: Amanda Droghini
-# Last Updated: 2025-07-20
+# Last Updated: 2025-11-04
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Format NRCS Alaska 2024 Site & Site Visit Data" reads in tables from the NRCS SQLite export received in
 # May
@@ -63,7 +63,7 @@ with sqlite3.connect(str(nrcs_database)) as nrcs_db_connection:
     cursor.execute(
         """SELECT siteobs.siteiidref, 
         siteobs.obsdate, siteobs.datacollector,
-        vegplot.vegplotiid,
+        vegplot.vegplotid, vegplot.vegplotiid,
         vegplot.primarydatacollector
            FROM siteobs
                     INNER JOIN vegplot
@@ -107,7 +107,7 @@ with sqlite3.connect(str(nrcs_database)) as nrcs_db_connection:
     plantid_original = pd.DataFrame(rows, columns=column_names)
 
 # Create lookup table
-lookup_visit = siteobs_original.loc[:, ["vegplotiid", "siteiidref"]]
+lookup_visit = siteobs_original.loc[:, ["vegplotid", "vegplotiid", "siteiidref"]]
 
 ## Drop sites that aren't in site table (i.e., missing coordinates)
 lookup_visit = lookup_visit.loc[
@@ -125,7 +125,7 @@ lookup_visit = lookup_visit.assign(vegplotiid=lookup_visit["vegplotiid"].astype(
 ## Ensure vegplotiid is unique
 print(lookup_visit[lookup_visit["vegplotiid"].duplicated()].shape[0])
 
-#### Format Site table ####
+# --- Format Site table  ---
 
 # Obtain vegplotiid
 site = site_original.merge(
@@ -135,7 +135,7 @@ site = site_original.merge(
 # Ensure all sites are in Alaska
 
 ## Explore coordinates
-site.describe()  ## Minimum latitude is 0.00; obviously an error
+print(site.describe())  ## Minimum latitude is 0.00; obviously an error
 
 ## Create geodataframe
 site_spatial = gpd.GeoDataFrame(
@@ -183,9 +183,10 @@ site_filtered = sites_filtered.assign(
 )
 
 # Overwrite lookup table to drop excluded sites
-lookup_visit = site_filtered.loc[:, ["vegplotiid", "site_code"]]
+## Keep vegplotid for compatibility with previous version of the dataset that was processed for AKVEG
+lookup_visit = site_filtered.loc[:, ["vegplotid", "vegplotiid", "site_code"]]
 
-# Clear workspace
+# Clean workspace
 del (
     sites_outside,
     sites_inside,
@@ -196,7 +197,7 @@ del (
     region_boundary,
 )
 
-#### Format Site Visit table ####
+# --- Format Site Visit table ---
 
 # Drop sites that aren't in Site table
 visit = siteobs_original.merge(right=lookup_visit, how="right", on="vegplotiid")
@@ -261,7 +262,7 @@ lookup_visit = lookup_visit.merge(
     right=visit, how="right", on="site_code"
 )  # Use right join to drop sites w/
 # incorrect dates
-lookup_visit = lookup_visit.loc[:, ["vegplotiid", "site_code", "site_visit_code"]]
+lookup_visit = lookup_visit.loc[:, ["vegplotid", "vegplotiid", "site_code", "site_visit_code"]]
 
 # Format personnel names
 
@@ -299,7 +300,7 @@ regex_pattern = r"^([^/&,;]*)" r"(?:\s*(?:/|&|,|;)\s*(.*))?$"
 primary_collectors = visit["primarydatacollector"].str.extract(regex_pattern)
 other_collectors = visit["datacollector"].str.extract(regex_pattern)
 
-# Combine into single datafrmae
+# Combine into single dataframe
 combined_collectors = (
     pd.DataFrame(np.hstack([primary_collectors, other_collectors]))
     .rename(
