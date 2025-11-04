@@ -83,7 +83,7 @@ veg_data <- veg_original %>%
   )
 
 # Ensure every site visit has at least one entry
-veg_data %>% filter(is.na(Veg.cover.pct))
+print(veg_data %>% filter(is.na(Veg.cover.pct)))
 
 # Standardize scientific names ----
 
@@ -161,12 +161,12 @@ veg_taxa <- veg_taxa %>%
   ))
 
 # Ensure that all codes returned a match
-veg_taxa %>%
+print(veg_taxa %>%
   filter(is.na(name_adjudicated)) %>%
-  nrow()
+  nrow())
 
 # Ensure that all accepted names are in the AKVEG checklist
-which(!(veg_taxa$name_adjudicated %in% unique(taxa_all$taxon_accepted)))
+print(which(!(veg_taxa$name_adjudicated %in% unique(taxa_all$taxon_accepted))))
 
 # Format dead status ----
 # If veg stratum = Snag, set dead_status to TRUE. Assume all other plants are live.
@@ -205,7 +205,7 @@ temp <- veg_final %>%
   arrange(-total_sum)
 
 # Are values for dead status Boolean?
-table(veg_final$dead_status)
+print(table(veg_final$dead_status))
 
 # Are the correct number of sites included?
 visit_original %>%
