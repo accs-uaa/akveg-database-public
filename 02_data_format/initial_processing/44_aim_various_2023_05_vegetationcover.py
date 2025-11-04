@@ -29,6 +29,7 @@ template_folder = project_folder / 'Data_Entry'
 
 # Define inputs
 vegcover_input = plot_folder / 'working' / '44_aim_2023_veg_export.csv'
+codes_input = plot_folder / 'working' / '2021_AK_AIM_SpeciesList_AKVEG_Formatted 1.xlsx'
 visit_input = plot_folder / '03_sitevisit_aimvarious2023.csv'
 template_input = template_folder / '05_vegetation_cover.xlsx'
 
@@ -37,11 +38,18 @@ vegcover_output = plot_folder / '05_vegetationcover_aimvarious2023.csv'
 
 # Read in data
 lazy_veg = pl.scan_csv(vegcover_input)
+aimcodes_original = pl.read_excel(codes_input, columns=["name", "scientific_akveg"])
 visit_original = pl.read_csv(visit_input, columns=["site_code", "site_visit_code"])
 template = pl.read_excel(template_input)
 
 # Obtain taxonomy checklist from the AKVEG Database
 taxonomy_checklist = get_taxonomy()
+
+# Extract unknown codes (ending in '86') from AIM species list
+unk_codes = (aimcodes_original
+             .filter(pl.col("name").str.contains(r"86$"))
+             .rename({"name": "usda_code",
+                      "scientific_akveg": "name_original"}))
 
 # Load and format vegetation cover data
 vegcover = (
@@ -167,6 +175,9 @@ print(vegcover_long["dead_status"].value_counts())  ## Ensure no nulls
 # Format USDA plant codes
 usda_codes = get_usda_codes()
 
+# Add unknown codes (ending 86)
+usda_codes = pl.concat([usda_codes, unk_codes])
+
 # Translate USDA codes to accepted scientific names
 vegcover_taxa = (vegcover_long.lazy()
 
@@ -221,7 +232,7 @@ unmatched_codes = (vegcover_taxa
                    .select("usda_code")
                    )
 
-## Reconcile entries to unknown for now (n=384)
+## Reconcile entries to unknown for now (n=370)
 vegcover_taxa = (vegcover_taxa.with_columns(pl.when(pl.col("name_original").is_null())
                                             .then(pl.lit("unknown"))
                                             .otherwise(pl.col("name_original"))
