@@ -41,6 +41,9 @@ visit_input <- path(plot_folder, "03_sitevisit_yukonbiophysical2020.csv")
 veg_input <- path(source_folder, "Veg_2024Apr09.xlsx")
 template_input <- path(template_folder, "05_vegetation_cover.xlsx")
 
+# Define temporary taxonomy file
+taxonomy_yukon_input <- path(project_folder, "Taxonomy_Updates", "taxonomy_wc.xlsx")
+
 # Define output dataset
 veg_output <- path(plot_folder, "05_vegetationcover_yukonbiophysical2020.csv")
 
@@ -54,8 +57,9 @@ taxa_file <- path(repository_folder, "queries", "00_taxonomy.sql")
 visit_original <- read_csv(visit_input, col_select = c("site_code", "site_visit_code"))
 veg_original <- read_xlsx(veg_input, .name_repair = "universal") ## Ignore warnings
 template <- colnames(read_xlsx(path = template_input))
+taxonomy_yukon <- read_xlsx(taxonomy_yukon_input, sheet="taxonomy")
 
-# Query AKVEG database ----
+# Connect to AKVEG Database ----
 
 # Import database connection function
 connection_script <- path(
@@ -67,11 +71,23 @@ source(connection_script)
 # Connect to the AKVEG PostgreSQL database
 akveg_connection <- connect_database_postgresql(authentication)
 
+
+# Format taxonomy ----
+
 # Define query
 query_taxa <- read_file(taxa_file)
 
 # Read SQL table as dataframe
-taxa_all <- as_tibble(dbGetQuery(akveg_connection, query_taxa))
+taxonomy_akveg <- as_tibble(dbGetQuery(akveg_connection, query_taxa))
+
+# Format YT taxonomy to match AKVEG query
+taxonomy_yukon <- taxonomy_yukon %>% 
+  rename(code_akveg = taxon_code) %>%
+  mutate(taxon_genus = "") %>% 
+  select(all_of(colnames(taxonomy_akveg)))
+
+# Combine taxonomic datasets
+taxonomy_all = rbind(taxonomy_akveg, taxonomy_yukon)
 
 # Append site visit code ----
 veg_data <- veg_original %>%
@@ -108,16 +124,16 @@ veg_taxa <- veg_data %>%
   )) %>%
   filter(name_original != "Unspecified" & name_original != "Fungus" & Veg.stratum.cd != "NV" & name_original != "Temporarily unidentified") ##  Remove non-plant codes
 
-# Join with AKVEG comprehensive checklist
+# Join with AKVEG + Yukon Checklist
 veg_taxa <- veg_taxa %>%
-  left_join(taxa_all, join_by("name_original" == "taxon_name")) %>%
+  left_join(taxonomy_all, join_by("name_original" == "taxon_name")) %>%
   rename(name_adjudicated = taxon_accepted)
 
 # Address codes without a match
 veg_taxa <- veg_taxa %>%
   mutate(name_adjudicated = case_when(name_original == "Poaceae" ~ "grass (Poaceae)",
     name_original == "Alnus alnobetula ssp. crispa" ~ "Alnus alnobetula ssp. fruticosa",
-    grepl("^Alopecurus", Scientific.name) & is.na(name_adjudicated) ~ "Alpinus",
+    grepl("^Alopecurus", Scientific.name) & is.na(name_adjudicated) ~ "Alopecurus",
     name_original == "Andromeda polifolia var. polifolia" ~ "Andromeda polifolia",
     name_original == "Artemisia canadensis" ~ "Artemisia borealis",
     name_original == "Artemisia norvegica" ~ "Artemisia arctica",
@@ -125,7 +141,7 @@ veg_taxa <- veg_taxa %>%
     name_original == "Astragalus adsurgens" ~ "Astragalus laxmannii",
     name_original == "Astragalus eucosmus ssp. eucosmus" ~ "Astragalus eucosmus",
     name_original == "Betula x dugleana" ~ "Betula cf. occidentalis",
-    name_original == "Bromus carinatus" ~ "grass (Poaceaea)",
+    name_original == "Bromus carinatus" ~ "grass (Poaceae)",
     name_original == "Cardamine oligosperma" ~ "Cardamine umbellata",
     name_original == "Carex x flavicans" ~ "Carex subspathacea",
     name_original == "Chrysanthemum" ~ "forb",
@@ -163,10 +179,17 @@ veg_taxa <- veg_taxa %>%
 # Ensure that all codes returned a match
 print(veg_taxa %>%
   filter(is.na(name_adjudicated)) %>%
-  nrow())
+  distinct(name_original))
+
+# Correct remaining unmatched name (Potentilla uniflora)
+## Reconcile to Potentilla for now
+veg_taxa <- veg_taxa %>%
+  mutate(name_adjudicated = case_when(name_original == "Potentilla uniflora" ~ "Potentilla",
+                                      .default = name_adjudicated
+  ))
 
 # Ensure that all accepted names are in the AKVEG checklist
-print(which(!(veg_taxa$name_adjudicated %in% unique(taxa_all$taxon_accepted))))
+print(which(!(veg_taxa$name_adjudicated %in% unique(taxonomy_all$taxon_accepted))))  # Should be empty
 
 # Format dead status ----
 # If veg stratum = Snag, set dead_status to TRUE. Assume all other plants are live.
@@ -188,7 +211,7 @@ veg_final <- veg_final %>%
   ) %>% # Round to 3 decimal places
   select(all_of(template))
 
-# QA/QC -----
+# QC -----
 
 # Do any of the columns have null values that need to be addressed?
 cbind(
@@ -198,7 +221,7 @@ cbind(
   )
 )
 
-# Are the values for percent cover between 0% and 100%?
+# Are the range of summed percent cover value reasonable?
 temp <- veg_final %>%
   group_by(site_visit_code) %>%
   summarise(total_sum = sum(cover_percent)) %>%
