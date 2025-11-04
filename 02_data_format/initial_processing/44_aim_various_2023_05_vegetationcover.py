@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Format Vegetation Cover Table for BLM AIM Various 2023 data
 # Author: Amanda Droghini, Alaska Center for Conservation
-# Last Updated: 2025-10-30
+# Last Updated: 2025-11-03
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Format Vegetation Cover Table for BLM AIM Various 2023 data" uses data from line-point intercept surveys
 # to calculate site-level percent foliar cover for each recorded species. It also appends unique site visit
@@ -79,6 +79,17 @@ print(vegcover["site_code", "site_visit_code"].null_count())
 
 ## Ensure that all lines are the standard 25m length
 print(vegcover["LineLength"].unique())
+
+# --- Calculate number of points per plot ---
+## Plots should have 150 points (3 transects * 50 points per transects), though plots occasionally have slightly less
+## Perform this step prior to any filtering/excluding to ensure no rows are dropped
+number_of_points = (vegcover
+                    .group_by("site_visit_code")
+                    .agg(pl.col("point_number")
+                         .max())
+                    .rename({"point_number":"max_hits"})
+                    )
+print(number_of_points.describe())
 
 # --- Convert to long format ---
 
@@ -248,15 +259,6 @@ group_columns_plots = [
     "name_adjudicated",
     "dead_status"
 ]
-
-# Calculate number of points per plot
-# Plots should have 150 points (3 transects * 50 points per transects), but a handful have fewer
-number_of_points = (vegcover_taxa
-                    .group_by("site_visit_code")
-                    .agg(pl.col("point_number")
-                         .max())
-                    .rename({"point_number":"max_hits"})
-                    )
 
 # Calculate cover percent for each species and site visit
 vegcover_final = (vegcover_taxa
