@@ -19,6 +19,8 @@ their corresponding accepted name.
 4. get_usda_codes: Removes author names from accepted scientific names for USDA plant codes. The resulting cleaned
 column can now be joined with the scientific names in the AKVEG Database without further processing.
 5. get_abiotic_elements: Queries the AKVEG Database to obtain abiotic/ground elements and their element type.
+6. add_abiotic_elements: Uses the abiotic query from function 5 to identify and add missing abiotic elements with a
+cover of 0%.
 """
 
 # Import packages
@@ -29,7 +31,7 @@ import polars as pl
 import os
 from akutils import connect_database_postgresql
 from akutils import query_to_dataframe
-from typing import Union, Literal
+from typing import Union, Literal, List
 from plotly.graph_objects import Figure
 
 # Define file path for the map boundary
@@ -344,3 +346,63 @@ def get_abiotic_elements(
     finally:
         # 6. Close the database connection
         akveg_db_connection.close()
+
+# --- Function 6 ---
+def add_missing_elements(
+        visit_codes: List[str],
+        abiotic_df: pl.DataFrame,
+        abiotic_query: pl.DataFrame
+) -> pl.DataFrame:
+
+    """
+        Identifies and adds missing abiotic elements for each site visit, giving them a cover of 0%.
+
+        Args:
+            visit_codes: A list of unique site visits.
+            abiotic_df: A Polars DataFrame containing site visit code, abiotic element name, and abiotic top
+            cover percent for each abiotic element encountered during the site visit.
+            abiotic_query: A Polars DataFrame containing entries for each abiotic element in the AKVEG Database. The
+            get_abiotic_elements function returns a compatible DataFrame.
+
+        Returns:
+            A Polars DataFrame containing only the sites inside the boundary with coordinates in NAD83,
+            or None if the boundary file cannot be loaded.
+        """
+
+    # Initialize a list to hold the result from each loop iteration
+    results: List[pl.DataFrame] = []
+    final_columns = ["site_visit_code", "abiotic_element", "abiotic_top_cover_percent"]
+
+    for visit_code in visit_codes:
+        subset_cover = (abiotic_df
+                        .select(final_columns)
+                        .filter(pl.col("site_visit_code") == visit_code))
+
+        # If subset dataframe is empty, no abiotic top cover hits were recorded at that line.
+        # Add every abiotic element with 0% percent
+        if subset_cover.shape[0] == 0:
+            elements_missing = abiotic_query
+
+        # If subset dataframe is not empty, identify missing elements.
+        else:
+            elements_present = subset_cover['abiotic_element'].implode()
+            elements_missing = abiotic_query.filter(~pl.col('ground_element').is_in(elements_present)
+                                                    )
+        # Assign 0% cover and visit code to missing elements
+        elements_missing = (elements_missing.with_columns(pl.lit(0.0).alias("abiotic_top_cover_percent"),
+                                                          pl.lit(visit_code).alias("site_visit_code"))
+                            .rename({"ground_element": "abiotic_element"})
+                            .select(final_columns)
+                            )
+
+        # Combine subset data with missing elements for complete list of abiotic elements for that site visit
+        final_subset = pl.concat([subset_cover, elements_missing])
+
+        # Append final subset to master list
+        results.append(final_subset)
+
+    # Concatenate list of results into Polars dataframe
+    final_dataframe = (pl.concat(results)
+                       .with_columns(pl.col("abiotic_top_cover_percent").round(decimals=2))
+                       .sort(by=["site_visit_code", "abiotic_element"]))
+    return final_dataframe
