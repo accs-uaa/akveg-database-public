@@ -170,7 +170,7 @@ sites_filtered["longitude_dd"] = round(sites_filtered.geometry.x, 6)
 sites_filtered["latitude_dd"] = round(sites_filtered.geometry.y, 6)
 
 # Populate remaining columns
-site_filtered = sites_filtered.assign(
+sites_filtered = sites_filtered.assign(
     establishing_project_code="nrcs_soils_2024",
     perspective="ground",
     cover_method="semi-quantitative visual estimate",
@@ -184,7 +184,7 @@ site_filtered = sites_filtered.assign(
 
 # Overwrite lookup table to drop excluded sites
 ## Keep vegplotid for compatibility with previous version of the dataset that was processed for AKVEG
-lookup_visit = site_filtered.loc[:, ["vegplotid", "vegplotiid", "site_code"]]
+lookup_visit = sites_filtered.loc[:, ["vegplotid", "vegplotiid", "site_code"]]
 
 # Clean workspace
 del (
@@ -510,8 +510,8 @@ visit_final = visit.assign(
 )
 
 # Drop remaining sites from Site table
-site_final = site_filtered.loc[
-    site_filtered["site_code"].isin(lookup_visit["site_code"])
+site_final = sites_filtered.loc[
+    sites_filtered["site_code"].isin(lookup_visit["site_code"])
 ]
 
 # Reorder columns to match data entry template
