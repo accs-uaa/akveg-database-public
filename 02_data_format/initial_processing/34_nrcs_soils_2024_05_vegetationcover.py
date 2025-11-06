@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Format NRCS Alaska 2024 Vegetation Cover Data
 # Author: Amanda Droghini
-# Last Updated: 2025-07-19
+# Last Updated: 2025-11-05
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Format NRCS Alaska 2024 Vegetation Cover Data" reads in tables from the NRCS SQLite export received
 # in May 2025. The script drops sites with incomplete data and corrects taxonomic names according to the AKVEG
@@ -38,7 +38,7 @@ credential_folder = project_folder / "Credentials"
 # Define input files
 nrcs_database = plot_folder / "source" / "Alaska_NRCS_SPSD_data_May2025.sqlite"
 lookup_input = workspace_folder / "lookup_visit.csv"
-visit_input = plot_folder / "03_sitevisit_nrcssoils2024.csv"
+visit_input = workspace_folder / "03_sitevisit_nrcssoils2024.csv"
 template_input = project_folder / "Data" / "Data_Entry" / "05_vegetation_cover.xlsx"
 
 akveg_credentials = (
@@ -46,7 +46,7 @@ akveg_credentials = (
 )
 
 # Define output file
-vegcover_output = plot_folder / "05_vegetationcover_nrcssoils2024.csv"
+vegcover_output = workspace_folder / "05_vegetationcover_nrcssoils2024.csv"  ## Output to workspace; includes duplicates
 
 # Read in data
 lookup_visit = pd.read_csv(lookup_input)
