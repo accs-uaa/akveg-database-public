@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Format NRCS Alaska 2024 Site & Site Visit Data
 # Author: Amanda Droghini
-# Last Updated: 2025-11-04
+# Last Updated: 2025-11-05
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Format NRCS Alaska 2024 Site & Site Visit Data" reads in tables from the NRCS SQLite export received in
 # May
@@ -42,8 +42,8 @@ template_site_input = project_folder / "Data" / "Data_Entry" / "02_site.xlsx"
 template_visit_input = project_folder / "Data" / "Data_Entry" / "03_site_visit.xlsx"
 
 # Define output files
-site_output = plot_folder / "02_site_nrcssoils2024.csv"
-visit_output = plot_folder / "03_sitevisit_nrcssoils2024.csv"
+site_output = workspace_folder / "02_site_nrcssoils2024.csv"  ## Output to workspace; includes duplicates
+visit_output = workspace_folder / "03_sitevisit_nrcssoils2024.csv"  ## Output to workspace; includes duplicates
 personnel_output = workspace_folder / "personnel_list.csv"
 lookup_output = workspace_folder / "lookup_visit.csv"
 
