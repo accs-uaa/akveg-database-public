@@ -15,6 +15,7 @@ system](#versioning-system).
 
 ### Fixed
 * **accs_nwisouthcentral_2024**: Corrected plot dimensions for all plots to 10 radius.
+* **nrcs_soils_2024** [private]: Removed 201 duplicate sites.
 
 ## [2.2.0] - 2025-10-28
 
@@ -48,7 +49,7 @@ system](#versioning-system).
 
 ### Added
 
-***nrcs_soils_2024** [private]: Replaces nrcs_soils_2022.
+* **nrcs_soils_2024** [private]: Replaces nrcs_soils_2022.
 * **abr_arcticrefuge_2019**: Add Environment, Soil Metrics, and Soil Horizons.
 * **accs_ribdon_2019**: Add Abiotic Top Cover and Ground Cover.
 * Add Whole Tussock Cover and Structural Group Cover for several ABR projects:
