@@ -82,10 +82,10 @@ veg_cover = site_visit_original %>%
   left_join(veg_cover_original, by = c("site_code" = "site_visit_id"))
 
 # Ensure correct number of sites (n=58)
-length(unique(veg_cover$site_code))
+print(length(unique(veg_cover$site_code)))
 
 # Ensure all entries have a site code
-veg_cover %>% filter(is.na(veg_cover$site_visit_code)) %>%  nrow()
+print(veg_cover %>% filter(is.na(veg_cover$site_visit_code)) %>%  nrow())
 
 # Obtain accepted taxonomic name ----
 
