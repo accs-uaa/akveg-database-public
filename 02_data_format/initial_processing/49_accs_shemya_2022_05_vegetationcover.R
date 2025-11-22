@@ -29,10 +29,10 @@ template_folder = path(project_folder, "Data/Data_Entry")
 source_folder = path(plot_folder, 'source')
 
 # Set repository directory
-repository_folder = path(drive,root_folder,'Repositories', 'akveg-database')
+repository_folder = path(drive,root_folder,'Repositories', 'akveg-database-public')
 
 # Set credentials directory
-credential_folder = path(project_folder, 'Credentials', 'akveg_public')
+credential_folder = path(project_folder, 'Credentials', 'akveg_public_read')
 
 # Define datasets ----
 
@@ -42,7 +42,7 @@ site_visit_input = path(plot_folder, '03_sitevisit_accsshemya2022.csv')
 template_input = path(template_folder, "05_vegetation_cover.xlsx")
 
 # Define credentials file
-authentication =  path(credential_folder, 'authentication_akveg_public.csv')
+authentication =  path(credential_folder, 'authentication_akveg_public_read.csv')
 
 # Define output datasets
 veg_cover_output = path(plot_folder, '05_vegetationcover_accsshemya2022.csv')
@@ -56,7 +56,7 @@ template = colnames(read_xlsx(path=template_input))
 
 # Import database connection function
 connection_script = path(repository_folder,
-                         'package_DataProcessing','connect_database_postgresql.R')
+                         'pull_functions','connect_database_postgresql.R')
 source(connection_script)
 
 # Connect to the AKVEG PostgreSQL database
