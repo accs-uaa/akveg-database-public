@@ -2,13 +2,13 @@
 # ---------------------------------------------------------------------------
 # "Format Vegetation Cover Table for ACCS Shemya Data"
 # Author: Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2024-07-03
-# Usage: Must be executed in R version 4.4.0+.
+# Last Updated: 2025-11-21
+# Usage: Must be executed in R version 4.5.1+.
 # Description: "Format Vegetation Cover Table for ACCS Shemya Data" formats vegetation cover data collected and entered by ACCS for ingestion into the AKVEG Database. The script standardizes taxonomic names, ensures values are within reasonable ranges, and adds required metadata fields where missing. The output is a CSV table that can be converted and included in a SQL INSERT statement.
 # ---------------------------------------------------------------------------
 
 # Load packages ----
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 library(fs)
 library(readr)
 library(readxl)
