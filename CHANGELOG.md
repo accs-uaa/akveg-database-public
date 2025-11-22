@@ -15,6 +15,9 @@ system](#versioning-system).
 
 ### Fixed
 * **accs_nwisouthcentral_2024**: Corrected plot dimensions for all plots to 10 radius.
+* **accs_shemya_2022**: Added two vegetation cover estimates which had previously been dropped because of missing 
+  values. Correct `name_adjudicated` field to reflect correct value: `name_adjudicated` should be the taxon name 
+  with the closest match in the AKVEG Checklist (i.e., corrected of typos), not the currently accepted name.
 * **nrcs_soils_2024** [private]: Removed 201 duplicate sites.
 
 ## [2.2.0] - 2025-10-28
