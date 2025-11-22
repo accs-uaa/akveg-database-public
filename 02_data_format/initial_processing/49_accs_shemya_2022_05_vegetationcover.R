@@ -98,11 +98,10 @@ veg_cover = veg_cover %>%
                                    .default = name_original)) %>% 
   mutate(name_original = str_to_sentence(name_original))
 
-# Join with AKVEG comprehensive checklist
+# Join with AKVEG Checklist
 veg_cover = veg_cover %>% 
   select(-name_adjudicated) %>% 
-  left_join(taxa_all,by=c("name_original" = "taxon_name")) %>% 
-  rename(name_adjudicated = taxon_name_accepted)
+  left_join(taxa_all,by=c("name_original" = "taxon_name"))
 
 # Address codes that did not match
 # Drop 'na' entries for now
@@ -110,13 +109,14 @@ veg_cover = veg_cover %>%
   filter(name_original != "Na") %>% 
   mutate(name_adjudicated = case_when(name_original == "Sanionia uncialis" ~ "Sanionia uncinata",
                                       name_original == "Sphagnum pailosum" ~ "Sphagnum papillosum",
-                                      .default = name_adjudicated))
+                                      .default = name_original))
 
-# Were there any other names that did not retrieve a match in AKVEG?
-veg_cover %>% filter(is.na(name_adjudicated)) %>% distinct(name_original)
+# Ensure all names match with a name in AKVEG
+print(veg_cover %>% filter(is.na(name_adjudicated)) %>% distinct(name_original))
+print(which(!(veg_cover$name_adjudicated %in% taxa_all$taxon_name)))
 
 # Format dead status ----
-table(veg_cover$dead_status)
+print(table(veg_cover$dead_status))
 
 # Based on distribution of values, I'm assuming that plants coded as '1' (n=659) were alive, while plants coded as '0' (n=5) were dead
 veg_cover = veg_cover %>% 
@@ -129,11 +129,16 @@ veg_cover = veg_cover %>%
 table(veg_cover$dead_status)
 
 # Format percent cover ----
-summary(veg_cover$cover_percent)
 
-# Drop two entries for which % cover is NA
+# Correct two entries for which % cover is NA
+## Based on conversation with data manager
 veg_cover = veg_cover %>% 
-  filter(!is.na(cover_percent))
+  mutate(cover_percent = case_when(site_code == "eas22r264" & name_original == "Parasenecio auriculatus" ~ 2,
+                                   site_code == "eas22r341" & name_original == "Rhytidium rugosum" ~ 1,
+                                   .default = cover_percent))
+
+# Ensure NAs have been addressed and values are reasonable
+print(summary(veg_cover$cover_percent))
 
 # Summarize percent cover so that there is only one entry per site per species
 # For each site, group entries with the same taxa/unknown code together and calculate total percent cover (does not change anything for this dataset)
@@ -148,20 +153,20 @@ summary_cover = summary_cover %>%
   mutate(cover_type = "absolute foliar cover") %>% 
   select(all_of(template))
 
-# QA/QC ----
+# QC ----
 
 # Do any of the columns have null values that need to be addressed?
-cbind(
+print(cbind(
   lapply(
     lapply(summary_cover, is.na)
     , sum)
 )
+)
 
 # Ensure cover_percent values are within a reasonable range
-summary(summary_cover$cover_percent) # Minimum for this dataset should be 1%, since trace species were not included
+summary(summary_cover$cover_percent) # Minimum for this dataset should be 1%
 
-# Calculate sum of top cover by site visit
-# Abiotic top cover was not recorded, so cannot verify whether sum of biotic + abiotic = 100%
+# Calculate sum of cover by site visit
 temp = summary_cover %>% 
   group_by(site_visit_code) %>% 
   summarize(sum_cover = sum(cover_percent)) %>% 
@@ -169,12 +174,12 @@ temp = summary_cover %>%
 
 # Ensure that all taxa in name_adjudicated match with a taxon in the database
 summary_cover %>% 
-  filter(!(name_adjudicated %in% taxa_all$taxon_name_accepted)) %>% 
+  filter(!(name_adjudicated %in% taxa_all$taxon_name)) %>% 
   distinct(name_original, name_adjudicated)
 
 # Check values of categorical/Boolean variables
-table(summary_cover$dead_status)
-unique(summary_cover$cover_type) # Should be absolute foliar cover
+print(table(summary_cover$dead_status))
+print(unique(summary_cover$cover_type)) # Should be absolute foliar cover
 
 # Export as CSV ----
 write_csv(summary_cover, veg_cover_output)
