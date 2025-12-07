@@ -122,14 +122,14 @@ project_check = vegetation_data %>%
   summarize(obs_n = n())
 
 # Create regional taxa table
-site_number = length(site_visit_data)
+site_number = nrow(site_visit_data)
 code_dictionary = taxa_data %>%
   select(code_akveg, taxon_name)
 regional_taxa = vegetation_data %>%
   filter(dead_status == FALSE) %>%
   group_by(name_accepted) %>%
   summarize(site_n = n(),
-            prevalence = round(n()/site_number, 1),
+            prevalence = round((n()/site_number) * 100, 1),
             mean_cover_pct = round(mean(cover_percent), 1)) %>%
   left_join(taxa_data, by = join_by('name_accepted' == 'taxon_accepted')) %>%
   filter(taxon_level != 'genus' &
