@@ -42,7 +42,7 @@ project_data = setNames(data.frame(matrix(ncol = length(project_columns), nrow =
          year_start = 2022,
          year_end = 2024,
          project_description = 'Linear transect vegetation plots assessed to quantify and describe potential habitat for wood bison on the Tetlin National Wildlife Refuge.',
-         private = 'TRUE')
+         private = 'FALSE')
 
 # Export data
 write_csv(project_data, project_output)
