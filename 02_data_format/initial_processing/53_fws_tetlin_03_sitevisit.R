@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Format Tetlin 2022-2024 site visit data for AKVEG Database
 # Author: Timm Nawrocki, Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2026-01-16
+# Last Updated: 2026-01-17
 # Usage: Must be executed in R version 4.5.1+.
 # Description: "Format Tetlin 2022-2024 site visit data for AKVEG Database" formats site visit data for entry into AKVEG Database.
 # ---------------------------------------------------------------------------
@@ -111,7 +111,8 @@ visit_2024_second = read_xlsx(site_2024_second_input) %>%
   # Create site code
   mutate(site_code = str_replace(site_code, '-', '_')) %>%
   # Create date string
-  mutate(date_string = str_remove_all(observe_date, "-")) %>% 
+  mutate(observe_date = as.character(observe_date),
+         date_string = str_remove_all(observe_date, "-")) %>% 
   # Create site visit code
   mutate(site_visit_code = paste0(site_code, '_', date_string)) %>% 
   # Correct observer
