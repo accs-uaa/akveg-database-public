@@ -100,7 +100,8 @@ vegetation_2022 = read_csv(site_2022_input) %>%
   # Add vegetation cover metadata
   mutate(dead_status = 'FALSE',
          cover_type = 'top canopy cover') %>%
-  rename(cover_percent = CoverTx) %>%
+  # Format percent cover
+  mutate(cover_percent = round(as.numeric(CoverTx), digits=3)) %>%
   # Join original species names
   mutate(SpeciesCode = str_to_upper(SpeciesCode)) %>%
   left_join(species_2022_data, by = join_by(SpeciesCode == abbreviation)) %>%
@@ -123,11 +124,15 @@ vegetation_2022 = read_csv(site_2022_input) %>%
                                       name_original == 'Salix species' ~ 'Salix',
                                       name_original == 'Sagittatus species' ~ 'Sagittaria cuneata',
                                       name_original == 'Vaccinium vitis-idea' ~ 'Vaccinium vitis-idaea',
+                                      name_original == 'Lichen and mosses grouped' ~ 'unknown',
                                       TRUE ~ name_adjudicated)) %>%
   # Select final columns
   select(site_visit_code, name_original, name_adjudicated, cover_type, dead_status, cover_percent) %>%
   # Join adjudicated and accepted names
   left_join(taxa_all, by = join_by(name_adjudicated == taxon_name), keep = TRUE)
+
+# Ensure range of percent cover values is reasonable
+print(summary(vegetation_2022$cover_percent))
 
 # Parse 2022 abiotic top cover
 abiotic_2022 = vegetation_2022 %>%
@@ -136,7 +141,6 @@ abiotic_2022 = vegetation_2022 %>%
   # Assign abiotic element
   mutate(abiotic_element = case_when(name_original == 'Bare ground' ~ 'soil',
                                      name_original == 'Burned or fallen wood' ~ 'dead down wood (≥ 2 mm)',
-                                     name_original == 'Lichen and mosses grouped' ~ 'biotic',
                                      name_original == 'Dead graminoids and forbes' ~ 'litter (< 2 mm)',
                                      name_original == 'Submerged in water' ~ 'water',
                                      TRUE ~ 'error')) %>%
@@ -165,15 +169,12 @@ abiotic_2024_first = read_csv(site_2024_input) %>%
   mutate(site_code = str_replace(Site_code, '-', '_')) %>%
   # Create site visit code
   mutate(site_visit_code = paste(site_code, '_', Date, sep='')) %>%
-  # Create a biotic sum
-  mutate(Cover_biotic = Cover_lichens + Cover_sphagnum + Cover_feather_moss) %>%
   # Select columns for pivot
-  select(site_visit_code, Cover_litter, Cover_water, Cover_bare_rock, Cover_soil, Cover_biotic) %>%
+  select(site_visit_code, Cover_litter, Cover_water, Cover_bare_rock, Cover_soil) %>%
   # Pivot data to long form
   pivot_longer(!site_visit_code, names_to = "abiotic_element", values_to = "abiotic_top_cover_percent") %>%
   # Format abiotic element names
   mutate(abiotic_element = case_when(abiotic_element == 'Cover_bare_rock' ~ 'rock fragments',
-                                     abiotic_element == 'Cover_biotic' ~ 'biotic',
                                      abiotic_element == 'Cover_litter' ~ 'litter (< 2 mm)',
                                      abiotic_element == 'Cover_soil' ~ 'soil',
                                      abiotic_element == 'Cover_water' ~ 'water',
@@ -181,6 +182,21 @@ abiotic_2024_first = read_csv(site_2024_input) %>%
   # Correct na to zero
   mutate(abiotic_top_cover_percent = case_when(is.na(abiotic_top_cover_percent) ~ 0,
                                                TRUE ~ abiotic_top_cover_percent))
+
+# Parse 2024 non-vascular and lichen data
+nonvascular_2024 = read_csv(site_2024_input) %>%
+  # Create site code
+  mutate(site_code = str_replace(Site_code, '-', '_')) %>%
+  # Create site visit code
+  mutate(site_visit_code = paste(site_code, '_', Date, sep='')) %>%
+  # Select columns for pivot
+  select(site_visit_code, Cover_lichens, Cover_sphagnum, Cover_feather_moss) %>%
+  # Pivot data to long form
+  pivot_longer(!site_visit_code, names_to = "name_original", values_to = "cover_percent") %>%
+  # Format functional group names
+  mutate(name_original = case_when(name_original == 'Cover_lichens' ~ 'lichen',
+                                   name_original == 'Cover_sphagnum' ~ 'Sphagnum moss',
+                                   name_original == 'Cover_feather_moss' ~ 'feathermoss (other)'))
 
 # Parse 2024 vegetation cover data
 vegetation_2024_first = read_csv(species_2024_input) %>%
@@ -193,6 +209,8 @@ vegetation_2024_first = read_csv(species_2024_input) %>%
   left_join(visit_original, by = join_by('site_code' == 'site_code')) %>%
   # Select columns
   select(site_visit_code, name_original, cover_percent) %>%
+  # Add non-vascular and lichen data
+  bind_rows(nonvascular_2024) %>% 
   # Join taxon names
   mutate(name_adjudicated = name_original) %>%
   mutate(name_adjudicated = str_replace(name_adjudicated, ' species', '')) %>%
@@ -201,7 +219,7 @@ vegetation_2024_first = read_csv(species_2024_input) %>%
                                       name_adjudicated == 'Carex_t2' ~ 'Carex',
                                       name_adjudicated == 'Salix_t1' ~ 'Salix',
                                       name_adjudicated == 'Arctostaphylos rubra' ~ 'Arctous rubra',
-                                      TRUE ~ name_adjudicated)) %>%
+                                      .default = name_adjudicated)) %>%
   # Filter out zero and n/a values
   filter(!is.na(cover_percent)) %>%
   filter(cover_percent != 0) %>%
@@ -215,7 +233,7 @@ vegetation_2024_first = read_csv(species_2024_input) %>%
   # Correct duplicates
   filter(site_visit_code != 'TET24_008_20240725' | name_original != 'Arctous rubra') %>%
   mutate(cover_percent = case_when(site_visit_code == 'TET24_008_20240725' & name_adjudicated == 'Arctous rubra' ~ 3.2,
-                                   TRUE ~ cover_percent))
+                                   .default = round(cover_percent, digits=3)))
 
 # Ensure there are no 'error' flags in abiotic dataset
 print(abiotic_2024_first %>% 
