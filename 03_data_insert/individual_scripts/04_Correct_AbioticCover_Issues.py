@@ -57,14 +57,11 @@ abiotic_list = pl.from_pandas(abiotic_list)['ground_element_code'].to_list()
 ## Close the database connection
 akveg_db_connection.close()
 
+# Identify which entries have an abiotic element code that does not match with the constrained values in AKVEG
+## All errors are sites with 'animal litter' (n=671)
+unmatched_codes = abiotic_data.filter(~pl.col('abiotic_element_code').is_in(abiotic_list))
 
-
-# Identify which entries have an abiotic element code that does not match with the constrained values in the AKVEG
-# Database
-unmatched_codes = abiotic_data.filter(~pl.col('abiotic_element_code').is_in(abiotic_list))  ## Biotic elements come
-# from Tetlin dataset (grouped mosses + lichen)
-
-## Drop animal litter/biotic codes
+## Drop codes that are not abiotic elements
 corrected_abiotic = abiotic_data.filter(pl.col('abiotic_element_code').is_in(abiotic_list))
 
 # Insert missing abiotic elements

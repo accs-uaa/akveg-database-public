@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Perform QC checks for Site and Site Visit tables
 # Author: Amanda Droghini
-# Last Updated: 2025-07-19
+# Last Updated: 2026-01-24
 # Usage: Execute in Python 3.13+.
 # Description: "Perform QC checks for Site and Site Visit tables" identifies and corrects
 # data entry errors in the Site and Site Visit tables of the AKVEG Database.
@@ -105,10 +105,10 @@ duplicate_check = (
 duplicate_check = duplicate_check.loc[(duplicate_check["count"] > 1)]
 print(
     duplicate_check.shape[0]
-)  # 73 site visits from nps_swan_2021 have duplicate entries
+)  # No issues
 
 # Drop sites with duplicates
-# Until problem is investigated in source file
+# Does not drop any sites if there are no duplicate issues
 corrected_abiotic = abiotic_data[
     ~abiotic_data["site_visit_code"].isin(duplicate_check["site_visit_code"])
 ]
@@ -124,7 +124,7 @@ temp = duplicate_check["site_visit_code"].isin(vegetation_data["site_visit_code"
 print(
     temp.value_counts()
 )  # Should all be true; sites dropped from abiotic cover table can be kept in the Site and
-# Site Visit table
+# Site Visit table (no rows if no issues)
 
 # QC Site table
 
@@ -192,7 +192,7 @@ del errors_winter
 # QC Sites not in Site Visit Table
 ## Reverse does not need to be checked: 'site code' in Site Visit table references Site table
 errors_sites_empty = site_data[~site_data["site_code"].isin(visit_data["site_code"])]
-print(errors_sites_empty.establishing_project_code.value_counts())  # n =124
+print(errors_sites_empty.establishing_project_code.value_counts())  # n = 124
 
 # QC Site Visit codes not in Cover Tables
 visit_array = visit_data.site_visit_code.to_numpy()
@@ -203,7 +203,7 @@ abiotic_unique = abiotic_data.site_visit_code.unique()
 cover_site_visits = np.concatenate((vegetation_unique, abiotic_unique))
 cover_site_visits = np.unique(cover_site_visits)  # Drop duplicates
 
-# Determine which sites are missing from the cover tables (n=192)
+# Determine which sites are missing from the cover tables (n=169)
 errors_cover = np.setdiff1d(visit_array, cover_site_visits, assume_unique=True)
 
 # Create list of sites to be dropped

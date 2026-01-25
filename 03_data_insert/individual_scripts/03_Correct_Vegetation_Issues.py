@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Perform QC check for Vegetation Cover table
 # Author: Amanda Droghini
-# Last Updated: 2025-07-19
+# Last Updated: 2026-01-24
 # Usage: Execute in Python 3.13+.
 # Description: "Perform QC check for Vegetation Cover table" identifies and corrects
 # data entry errors in the Vegetation Cover of the AKVEG Database.
@@ -96,7 +96,7 @@ print(
         (vegetation_data["name_original"] == "Salix planifolia")
         & (vegetation_data["code_adjudicated"] != "salpul")
     ]
-)  ## Affects 255 sites
+)  ## Affects 232 sites
 
 corrected_vegetation = vegetation_data.assign(
     code_adjudicated=np.where(
