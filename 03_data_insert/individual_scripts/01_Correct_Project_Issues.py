@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Perform QC checks for Project table
 # Author: Amanda Droghini
-# Last Updated: 2025-05-26
+# Last Updated: 2026-01-24
 # Usage: Execute in Python 3.13+.
 # Description: "Perform QC checks for Project table" queries the AKVEG database to identify
 # data entry errors in the Project table of the AKVEG Database. The output is a CSV file that lists site codes that
