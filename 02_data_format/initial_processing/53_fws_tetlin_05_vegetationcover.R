@@ -214,12 +214,9 @@ vegetation_2024_first = read_csv(species_2024_input) %>%
   bind_rows(nonvascular_2024) %>% 
   # Join taxon names
   mutate(name_adjudicated = name_original) %>%
-  mutate(name_adjudicated = str_replace(name_adjudicated, ' species', '')) %>%
+  mutate(name_adjudicated = str_remove(name_adjudicated, ' species')) %>%
   mutate(name_adjudicated = str_replace(name_adjudicated, ' s. ', ' ssp. ')) %>%
-  mutate(name_adjudicated = case_when(name_adjudicated == 'Carex_t1' ~ 'Carex',
-                                      name_adjudicated == 'Carex_t2' ~ 'Carex',
-                                      name_adjudicated == 'Salix_t1' ~ 'Salix',
-                                      name_adjudicated == 'Arctostaphylos rubra' ~ 'Arctous rubra',
+  mutate(name_adjudicated = case_when(name_adjudicated == 'Arctostaphylos rubra' ~ 'Arctous rubra',
                                       .default = name_adjudicated)) %>%
   # Filter out zero and n/a values
   filter(!is.na(cover_percent)) %>%
