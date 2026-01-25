@@ -383,7 +383,7 @@ abiotic_2024_second = read_xlsx(lpi_2024_input) %>%
   mutate(abiotic_element = case_when(taxon_code == 'l' ~ 'litter (< 2 mm)',
                                      taxon_code == 'wa' ~ 'water',
                                      taxon_code == 'wl' ~ 'dead down wood (≥ 2 mm)',
-                                     taxon_code == 'os' ~ 'organic soil',
+                                     taxon_code == 'os' ~ 'soil',
                                      .default = 'error')) %>% 
   # Calculate top cover percent for each plot
   mutate(hits = 1) %>% 
