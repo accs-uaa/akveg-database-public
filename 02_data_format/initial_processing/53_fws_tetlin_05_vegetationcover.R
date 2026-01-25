@@ -420,4 +420,4 @@ unique(table(complete_abiotic_cover$abiotic_element)) # 115 entries for each abi
 
 #### Export data ----
 write_csv(vegetation_data, vegetation_output)
-write_csv(abiotic_data, abiotic_output)
+write_csv(complete_abiotic_cover, abiotic_output)
