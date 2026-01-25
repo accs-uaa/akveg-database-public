@@ -116,20 +116,14 @@ vegetation_2022 = read_csv(site_2022_input) %>%
   left_join(taxa_all, by = join_by(name_original == taxon_name), keep = TRUE) %>%
   rename(name_adjudicated = taxon_name) %>%
   # Adjudicate names
-  mutate(name_adjudicated = case_when(name_original == 'Arctostaphlyos rubra' ~ 'Arctostaphylos rubra',
+  mutate(name_adjudicated = case_when(name_original == 'Sagittatus species' ~ 'Sagittaria cuneata',
+                                      grepl(" species", name_original) ~ str_remove(name_original, " species"),
+                                      name_original == 'Arctostaphlyos rubra' ~ 'Arctostaphylos rubra',
                                       name_original == 'Arctostaphlyos uva-ursi' ~ 'Arctostaphylos uva-ursi',
-                                      name_original == 'Astragalus species' ~ 'Astragalus',
                                       name_original == 'Calamagrostis purperea' ~ 'Calamagrostis purpurascens ssp. purpurascens',
-                                      name_original == 'Calamagrostis species' ~ 'Calamagrostis',
                                       name_original == 'Carex capita' ~ 'Carex capitata',
                                       name_original == 'Epibolium angustifolium' ~ 'Epilobium angustifolium',
-                                      name_original == 'Equisetum species' ~ 'Equisetum',
-                                      name_original == 'Juncus species' ~ 'Juncus',
-                                      name_original == 'Picea species' ~ 'Picea',
-                                      name_original == 'Poa species' ~ 'Poa',
                                       name_original == 'Rubus articus' ~ 'Rubus arcticus',
-                                      name_original == 'Salix species' ~ 'Salix',
-                                      name_original == 'Sagittatus species' ~ 'Sagittaria cuneata',
                                       name_original == 'Vaccinium vitis-idea' ~ 'Vaccinium vitis-idaea',
                                       name_original == 'Lichen and mosses grouped' ~ 'unknown',
                                       TRUE ~ name_adjudicated)) %>%
