@@ -70,7 +70,7 @@ source(connection_script)
 # Connect to the AKVEG PostgreSQL database
 akveg_connection = connect_database_postgresql(authentication)
 
-# Define query
+# Define taxonomic query
 query_taxa = "SELECT taxon_all.taxon_code as taxon_code
 , taxon_all.taxon_name as taxon_name
 , taxon_status.taxon_status as taxon_status
@@ -81,8 +81,15 @@ FROM taxon_all
   LEFT JOIN taxon_status ON taxon_all.taxon_status_id = taxon_status.taxon_status_id
 ORDER BY taxon_name_accepted, taxon_status, taxon_name;"
 
-# Read SQL table as dataframe
+## Read SQL table as dataframe
 taxa_all = as_tibble(dbGetQuery(akveg_connection, query_taxa))
+
+# Define abiotic element query
+query_abiotic = "SELECT * FROM ground_element
+WHERE ground_element.element_type <> 'ground';"
+
+## Read SQL table as dataframe
+abiotic_elements_list = as_tibble(dbGetQuery(akveg_connection, query_abiotic))
 
 #### Parse 2022 data ----
 
@@ -400,12 +407,26 @@ print(abiotic_2024_second %>%
         filter(abiotic_element == 'error') %>% 
         nrow())
 
-#### Merge and export data ----
+#### Merge data ----
 vegetation_data = rbind(vegetation_2022, vegetation_2024_first, vegetation_2024_second) %>%
   filter(site_visit_code != 'TET24_036_20240728' & site_visit_code != 'TET22_540_20220715')
 abiotic_data = rbind(abiotic_2022, abiotic_2024_first, abiotic_2024_second) %>%
   filter(site_visit_code != 'TET24_036_20240728' & site_visit_code != 'TET22_540_20220715')
 
-# Export data
+##### Add 'empty' abiotic elements ----
+# Even abiotic elements with 0% must be listed for each site visit
+complete_abiotic_cover <- abiotic_data %>%
+  complete(
+    site_visit_code, 
+    abiotic_element = abiotic_elements_list$ground_element, 
+    fill = list(abiotic_top_cover_percent = 0)
+  ) %>%
+  select(all_of(abiotic_template))
+
+# Check for completeness
+unique(table(complete_abiotic_cover$site_visit_code)) # 7 entries for each site (total number of abiotic elements)
+unique(table(complete_abiotic_cover$abiotic_element)) # 115 entries for each abiotic element (total number of sites)
+
+#### Export data ----
 write_csv(vegetation_data, vegetation_output)
 write_csv(abiotic_data, abiotic_output)
