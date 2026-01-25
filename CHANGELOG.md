@@ -11,7 +11,13 @@ system](#versioning-system).
 
 * **yukon_biophysical_2020**: Replaces yukon_biophysical_2015 and yukon_landcover_2016 (previously private, now 
   public). Add Project, Site, Site Visit, and Vegetation Cover.
-* **aim_various_2023**: Replaces aim_various_2022.
+
+## [2.3.0] - 2026-01-24
+
+### Added
+* **aim_various_2023** [private]: Replaces aim_various_2022.
+* **fws_tetlin_2024**: Added 22 site visits that were surveyed in late summer 2024. Dataset was private, but 
+  is now public.
 
 ### Fixed
 * **accs_nwisouthcentral_2024**: Corrected plot dimensions for all plots to 10 radius.
