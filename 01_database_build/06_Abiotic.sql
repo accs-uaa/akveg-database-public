@@ -2,7 +2,7 @@
 -- ---------------------------------------------------------------------------
 -- Build abiotic tables
 -- Author: Timm Nawrocki, Alaska Center for Conservation Science
--- Last Updated: 2025-09-24
+-- Last Updated: 2026-01-24
 -- Usage: Script should be executed in a PostgreSQL 17+ database.
 -- Description: "Build abiotic tables" creates the empty tables for the abiotic components of the AKVEG database. WARNING: THIS SCRIPT WILL ERASE ALL DATA IN EXISTING ABIOTIC TABLES.
 -- ---------------------------------------------------------------------------
@@ -34,8 +34,7 @@ CREATE TABLE abiotic_top_cover (
     abiotic_element_code varchar(2) NOT NULL,
     abiotic_top_cover_percent decimal(6,3) NOT NULL CONSTRAINT abiotic_percent_range CHECK (abiotic_top_cover_percent BETWEEN 0 AND 100),
     UNIQUE(site_visit_code, abiotic_element_code),
-    CONSTRAINT fk_abiotic_element_code FOREIGN KEY (abiotic_element_code) REFERENCES ground_element(ground_element_code),
-    CONSTRAINT check_abiotic_element_type CHECK (check_abiotic_element(abiotic_element_code))
+    CONSTRAINT fk_abiotic_element_code FOREIGN KEY (abiotic_element_code) REFERENCES ground_element(ground_element_code)
 );
 
 -- Create ground cover table
