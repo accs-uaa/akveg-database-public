@@ -58,11 +58,6 @@ project_correct = project_data.assign(
         1,
         project_data["completion_id"],
     ),
-    year_end=np.where(
-        project_data["project_code"] == "fws_tetlin_2024",
-        -999,
-        project_data["year_end"],
-    ),
 )
 
 # Repeat Quality Control checks
