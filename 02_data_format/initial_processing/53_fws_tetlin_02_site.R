@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Format Tetlin 2022-2024 site data for AKVEG Database
 # Author: Timm Nawrocki, Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2026-01-16
+# Last Updated: 2026-01-24
 # Usage: Must be executed in R version 4.5.1+.
 # Description: "Format Tetlin 2022-2024 site data for AKVEG Database" formats site data for entry into AKVEG Database. Three input data tables were provided: one for 2022 sites, one for 2024 early summer sites ('2024 first input'), and one for 2024 late summer sites ('2024 second input'). This script formats these tables separately, ensuring fields and columns are aligned with the AKVEG schema, and then merges the harmonized table into a single table that contains all site data from 2022 and 2024. The output is a CSV file that can be converted to a SQL INSERT statement for loading to the AKVEG Database.
 # ---------------------------------------------------------------------------
@@ -119,6 +119,7 @@ site_2024_second = read_xlsx(site_2024_second_input) %>%
   mutate(site_code = str_replace(site_code, '-', '_')) %>%
   # Add site metadata
   mutate(establishing_project_code = 'fws_tetlin_2024',
+         plot_dimensions_m = '12.5 radius',    ## Correct plot dimensions
          h_datum = 'NAD83') %>%
   # Select final columns
   select(all_of(site_template))
