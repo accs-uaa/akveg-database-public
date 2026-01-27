@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Format Tetlin 2022-2024 vegetation and abiotic cover data for AKVEG Database
 # Author: Timm Nawrocki, Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2026-01-24
+# Last Updated: 2026-01-26
 # Usage: Must be executed in R version 4.5.1+.
 # Description: "Format Tetlin 2022-2024 vegetation and abiotic cover data for AKVEG Database" formats vegetation cover and abiotic top cover data for entry into AKVEG Database. Two vegetation surveys were conducted in 2024. The two surveys used different methods.
 # ---------------------------------------------------------------------------
@@ -261,7 +261,7 @@ lpi_2024 = read_xlsx(lpi_2024_input) %>%
   # Exclude non-veg codes
   filter(!(taxon_code %in% c('l', 'os', 'wa', 'wl'))) %>% 
   # Correct unknown taxon code 'diantrif'
-  mutate(taxon_code = case_when(taxon_code == 'diantrif' ~ 'unknown',
+  mutate(taxon_code = case_when(taxon_code == 'diantrif' ~ 'mentri',
                                 taxon_code == 'bc' ~ 'fgbiocru',
                                 .default = taxon_code)) %>% 
   # Obtain name adjudicated
