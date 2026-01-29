@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # utils.py
 # Author: Amanda Droghini
-# Last Updated: 2025-11-03
+# Last Updated: 2026-01-29
 # ---------------------------------------------------------------------------
 
 """
@@ -55,17 +55,18 @@ VALID_ELEMENT_TYPES = {"all", "ground", "abiotic"}  # For validating input durin
 
 # --- Function 1 ---
 def filter_sites_in_alaska(
-        site_df: pl.DataFrame,
-        input_crs: str,
-        longitude_col: str = "longitude_dd",
-        latitude_col: str = "latitude_dd"
+        site_df: pl.DataFrame | gpd.GeoDataFrame,
+        input_crs: str | None = None,
+        longitude_col: str | None = "longitude_dd",
+        latitude_col: str | None = "latitude_dd"
 ) -> Union[pl.DataFrame, None]:
     """
-    Filters a Polars DataFrame of sites, keeping only those
+    Filters a DataFrame of sites (Polars or GeoPandas), keeping only those
     that fall within the map boundary, and re-projects the coordinates to NAD83.
 
     Args:
-        site_df: The input Polars DataFrame containing site coordinates.
+        site_df: The input DataFrame containing site coordinates. Accepted input types: Polars DataFrame, GeoPandas
+        GeoDataFrame.
         input_crs: The EPSG code (as a string, e.g., "EPSG:4269") of the
                    input latitude and longitude columns.
         longitude_col: The name of the column with longitude.
@@ -94,16 +95,36 @@ def filter_sites_in_alaska(
         print(f"ERROR loading or reprojecting region boundary: {e}")
         return None
 
-    # 2. Convert Polars DF to GeoPandas GeoDataFrame
-    site_pd = site_df.to_pandas()
+    # 2. Determine object type
+    if isinstance(site_df, pl.DataFrame):
 
-    site_spatial = gpd.GeoDataFrame(
+        ## Ensure user has specified CRS and coordinates
+        if input_crs is None:
+            raise ValueError("input_crs must be provided for Polars DataFrames.")
+
+        # Identify missing coordinate columns
+        required_coords = [longitude_col, latitude_col]
+        missing_cols = []
+        for col_name in required_coords:
+            if col_name not in site_df.columns:
+                missing_cols.append(col_name)
+
+        # Raise error if any are missing
+        if missing_cols:
+            raise ValueError(f"Required coordinate columns {missing_cols} are missing from the Polars DataFrame.")
+
+        ## Convert to GeoPandas GeoDataFrame
+        site_pd = site_df.to_pandas()
+        site_spatial = gpd.GeoDataFrame(
         site_pd,
         geometry=gpd.points_from_xy(site_pd[longitude_col], site_pd[latitude_col]),
         crs=input_crs
-    )
+        )
+    elif isinstance(site_df, gpd.GeoDataFrame):
+        site_spatial = site_df
 
-    print(f"Input CRS of site df: {input_crs}")
+    # Confirm input CRS
+    print(f"Input CRS of site df: {site_spatial.crs}")
 
     # 3. Project sites to match the region boundary
     site_spatial = site_spatial.to_crs(crs=TARGET_CRS_INTERSECT)
@@ -126,7 +147,7 @@ def filter_sites_in_alaska(
     print(f"Sites remaining after filtering (inside boundary): {sites_inside_gdf.shape[0]}")
     print(f"Sites filtered out (outside boundary): {sites_outside_count}")
 
-    # 7. Reproject to NAD83 for Final Output
+    # 7. Reproject to NAD83 for final output
     sites_inside_nad83 = sites_inside_gdf.to_crs(TARGET_CRS_NAD83)
 
     # Add new lat/long columns from the reprojected geometry
@@ -212,8 +233,16 @@ def get_taxonomy(
 
     try:
         # 2. Query database for taxonomy checklist
-        taxonomy_query = """SELECT taxon_all.taxon_code, taxon_all.taxon_name, taxon_all.taxon_accepted_code
-                    FROM taxon_all;"""
+        taxonomy_query = """SELECT taxon_all.taxon_code
+        , taxon_all.taxon_name
+        , taxon_all.taxon_accepted_code
+        , taxon_family.taxon_family as taxon_family
+        , taxon_habit.taxon_habit as taxon_habit
+        FROM taxon_all
+        LEFT JOIN taxon_accepted ON taxon_all.taxon_accepted_code = taxon_accepted.taxon_accepted_code
+        LEFT JOIN taxon_hierarchy ON taxon_accepted.taxon_genus_code = taxon_hierarchy.taxon_genus_code
+        LEFT JOIN taxon_family ON taxon_hierarchy.taxon_family_id = taxon_family.taxon_family_id
+        LEFT JOIN taxon_habit ON taxon_accepted.taxon_habit_id = taxon_habit.taxon_habit_id;"""
 
         # 3. Obtain full synonymized checklist
         taxonomy_original = query_to_dataframe(akveg_db_connection, taxonomy_query)
@@ -222,13 +251,12 @@ def get_taxonomy(
         # 4. Create table with accepted names only
         taxonomy_accepted = (
             taxonomy_original.filter(pl.col("taxon_code") == pl.col("taxon_accepted_code"))
-            .rename({"taxon_name": "name_adjudicated"})
+            .rename({"taxon_name": "name_accepted"})
             .drop("taxon_code")
         )
 
         # 5. Include accepted name in synonymized checklist
         taxonomy_akveg = (taxonomy_original.join(taxonomy_accepted, on='taxon_accepted_code', how='left')
-                          .drop(["taxon_code", "taxon_accepted_code"])
                           )
 
         return taxonomy_akveg
