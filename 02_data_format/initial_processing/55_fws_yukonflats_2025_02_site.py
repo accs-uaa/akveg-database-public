@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------------
-# Format Site Visit table for USFWS Yukon Flats data
+# Format Site table for USFWS Yukon Flats data
 # Author: Amanda Droghini, Alaska Center for Conservation
 # Last Updated: 2026-01-29
 # Usage: Must be executed in a Python 3.13+ distribution.
-# Description: "Format Site Visit table for USFWS Yukon Flats data" extracts site and site visit data from an Esri
-# shapefile. The script drops extraneous columns and re-projects coordinates to NAD83. The outputs are two CSV files
-# that can be used for upload to the AKVEG database.
+# Description: "Format Site table for USFWS Yukon Flats data" extracts site data from an Esri
+# shapefile. The script verifies that all plots are in Alaska, re-projects coordinates to NAD83, populates missing
+# fields, and drops extraneous columns. The output is a CSV file that can be used for upload to the AKVEG database.
 # ---------------------------------------------------------------------------
 
 # Import packages
