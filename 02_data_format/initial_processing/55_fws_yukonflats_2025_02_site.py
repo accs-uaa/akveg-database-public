@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------------
 # Format Site table for USFWS Yukon Flats data
-# Author: Amanda Droghini, Alaska Center for Conservation
+# Author: Amanda Droghini, Alaska Center for Conservation Science
 # Last Updated: 2026-01-29
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Format Site table for USFWS Yukon Flats data" extracts site data from an Esri
