@@ -10,18 +10,18 @@ This module provides a collection of utility functions to support the processing
 AKVEG Database.
 
 Functions include:
-1. filter_sites_in_alaska: Filter plots that aren't within the map boundary (Alaska and adjacent Canada)
+1. get_template: Read in template schema for use when validating processed tables.
+2. filter_sites_in_alaska: Filter plots that aren't within the map boundary (Alaska and adjacent Canada)
 and re-project coordinates of included sites to NAD83.
-2. plot_survey_dates: Create a bar chart (histogram) displaying the distribution of survey dates across sites.
+3. plot_survey_dates: Create a bar chart (histogram) displaying the distribution of survey dates across sites.
 Facilitates detection of temporal outliers.
-3. get_taxonomy: Queries the AKVEG Database to obtain all taxonomic names in the AKVEG Comprehensive Checklist and
+4. get_taxonomy: Queries the AKVEG Database to obtain all taxonomic names in the AKVEG Comprehensive Checklist and
 their corresponding accepted name.
-4. get_usda_codes: Removes author names from accepted scientific names for USDA plant codes. The resulting cleaned
+5. get_usda_codes: Removes author names from accepted scientific names for USDA plant codes. The resulting cleaned
 column can now be joined with the scientific names in the AKVEG Database without further processing.
-5. get_abiotic_elements: Queries the AKVEG Database to obtain abiotic/ground elements and their element type.
-6. add_abiotic_elements: Uses the abiotic query from function 5 to identify and add missing abiotic elements with a
+6. get_abiotic_elements: Queries the AKVEG Database to obtain abiotic/ground elements and their element type.
+7. add_abiotic_elements: Uses the abiotic query from function 5 to identify and add missing abiotic elements with a
 cover of 0%.
-7. get_template: Reads in template schema for use when validating processed tables.
 """
 
 # Import packages
@@ -78,6 +78,32 @@ SCHEMA_OVERRIDES = {
 }
 
 # --- Function 1 ---
+def get_template(
+        template_code: str
+) -> pl.DataFrame:
+    """
+            Reads an AKVEG template Excel file into a Polars DataFrame. The template file can be used to validate
+            column names and column order during processing.
+
+            Args:
+                template_code: Short-hand identifier for the table (e.g., 'project').
+
+            Returns:
+                A Polars DataFrame of the template schema.
+            """
+
+    # Retrieve file path associated with template code
+    template_path = TEMPLATE_MAP.get(template_code.lower())
+
+    if template_path is None:
+        raise ValueError(f"Table '{template_code}' not found. Available: {list(TEMPLATE_MAP.keys())}")
+
+    # Apply schema overrides if they exist and return template table
+    overrides = SCHEMA_OVERRIDES.get(template_code, {})
+    return pl.read_excel(template_path, schema_overrides=overrides)
+
+
+# --- Function 2 ---
 def filter_sites_in_alaska(
         site_df: pl.DataFrame | gpd.GeoDataFrame,
         input_crs: str | None = None,
@@ -188,7 +214,7 @@ def filter_sites_in_alaska(
     return sites_inside_df
 
 
-# --- Function 2 ---
+# --- Function 3 ---
 def plot_survey_dates(
         visit_df: pl.DataFrame,
         date_col: str = "observe_date",
@@ -228,7 +254,7 @@ def plot_survey_dates(
     return fig
 
 
-# --- Function 3 ---
+# --- Function 4 ---
 def get_taxonomy(
         credential_file: str = CREDENTIAL_FILE
 ) -> Union[pl.DataFrame, None]:
@@ -294,7 +320,7 @@ def get_taxonomy(
         akveg_db_connection.close()
 
 
-# --- Function 4 ---
+# --- Function 5 ---
 def get_usda_codes(
         usda_file: str = USDA_CODES_FILE
 ) -> pl.DataFrame:
@@ -333,7 +359,7 @@ def get_usda_codes(
 
     return plant_codes
 
-# --- Function 5 ---
+# --- Function 6 ---
 def get_abiotic_elements(
         credential_file: str = CREDENTIAL_FILE,
         element_type: ElementTypes = "all"
@@ -398,7 +424,7 @@ def get_abiotic_elements(
         # 6. Close the database connection
         akveg_db_connection.close()
 
-# --- Function 6 ---
+# --- Function 7 ---
 def add_missing_elements(
         visit_codes: List[str],
         abiotic_df: pl.DataFrame,
@@ -457,30 +483,4 @@ def add_missing_elements(
                        .with_columns(pl.col("abiotic_top_cover_percent").round(decimals=2))
                        .sort(by=["site_visit_code", "abiotic_element"]))
     return final_dataframe
-
-
-# --- Function 7 ---
-def get_template(
-        template_code: str
-) -> pl.DataFrame:
-    """
-            Reads an AKVEG template Excel file into a Polars DataFrame. The template file can be used to validate
-            column names and column order during processing.
-
-            Args:
-                template_code: Short-hand identifier for the table (e.g., 'project').
-
-            Returns:
-                A Polars DataFrame of the template schema.
-            """
-
-    # Retrieve file path associated with template code
-    template_path = TEMPLATE_MAP.get(template_code.lower())
-
-    if template_path is None:
-        raise ValueError(f"Table '{template_code}' not found. Available: {list(TEMPLATE_MAP.keys())}")
-
-    # Apply schema overrides if they exist and return template table
-    overrides = SCHEMA_OVERRIDES.get(template_code, {})
-    return pl.read_excel(template_path, schema_overrides=overrides)
 
