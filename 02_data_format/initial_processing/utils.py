@@ -21,11 +21,14 @@ column can now be joined with the scientific names in the AKVEG Database without
 5. get_abiotic_elements: Queries the AKVEG Database to obtain abiotic/ground elements and their element type.
 6. add_abiotic_elements: Uses the abiotic query from function 5 to identify and add missing abiotic elements with a
 cover of 0%.
+7. get_template: Reads in template schema for use when validating processed tables.
 """
 
 # Import packages
 import geopandas as gpd
 import numpy as np
+import pathlib
+from pathlib import Path
 import plotly.express as px
 import polars as pl
 import os
@@ -52,6 +55,27 @@ USDA_CODES_FILE = os.path.join(PROJECT_FOLDER, 'Data', "Tables_Taxonomy", "USDA_
 # Define allowed element type values
 ElementTypes = Literal["all", "ground", "abiotic"]
 VALID_ELEMENT_TYPES = {"all", "ground", "abiotic"}  # For validating input during runtime
+
+# Define template folder path
+TEMPLATE_DIR = os.path.join(PROJECT_FOLDER, 'Data', 'Data_Entry')
+
+# Map template shorthand codes to their file paths
+TEMPLATE_MAP = {}
+
+for file in Path(TEMPLATE_DIR).glob('[0-9][0-9]_*'):
+    file_stem = file.stem
+    # Split file stem at first underscore only to get rid of the numbers
+    file_code = file_stem.split('_',1)[1]
+    TEMPLATE_MAP[file_code]=file
+
+# Define schema for specific template tables
+# If table is not listed, use default Polarst ype
+SCHEMA_OVERRIDES = {
+        "project": {"year_start": pl.Int64, "year_end": pl.Int64},
+        "site": {"latitude_dd": pl.Decimal,
+                     "longitude_dd": pl.Decimal,
+                     "h_error_m": pl.Decimal}
+}
 
 # --- Function 1 ---
 def filter_sites_in_alaska(
@@ -433,3 +457,30 @@ def add_missing_elements(
                        .with_columns(pl.col("abiotic_top_cover_percent").round(decimals=2))
                        .sort(by=["site_visit_code", "abiotic_element"]))
     return final_dataframe
+
+
+# --- Function 7 ---
+def get_template(
+        template_code: str
+) -> pl.DataFrame:
+    """
+            Reads an AKVEG template Excel file into a Polars DataFrame. The template file can be used to validate
+            column names and column order during processing.
+
+            Args:
+                template_code: Short-hand identifier for the table (e.g., 'project').
+
+            Returns:
+                A Polars DataFrame of the template schema.
+            """
+
+    # Retrieve file path associated with template code
+    template_path = TEMPLATE_MAP.get(template_code.lower())
+
+    if template_path is None:
+        raise ValueError(f"Table '{template_code}' not found. Available: {list(TEMPLATE_MAP.keys())}")
+
+    # Apply schema overrides if they exist and return template table
+    overrides = SCHEMA_OVERRIDES.get(template_code, {})
+    return pl.read_excel(template_path, schema_overrides=overrides)
+
