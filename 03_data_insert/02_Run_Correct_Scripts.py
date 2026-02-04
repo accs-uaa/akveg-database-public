@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Batch run 'correct' scripts
 # Author: Amanda Droghini
-# Last Updated: 2025-10-28
+# Last Updated: 2026-02-04
 # Usage: Execute in Python 3.13+.
 # Description: "Batch run 'correct' scripts" iterates through each Python script that identifies and corrects quality
 # control issues. The output is a series of CSV files that contain the corrected tables. Importantly, this
@@ -23,7 +23,7 @@ drive = Path('C:/')
 root_folder = 'ACCS_Work'
 
 # Define folder structure
-repository_folder = (drive / root_folder / 'Repositories' / 'akveg-database-public' / '03_data_insert' /
+repository_folder = (drive / root_folder / 'Repositories' / 'akveg-database' / '03_data_insert' /
                      'individual_scripts')
 
 # List relevant files

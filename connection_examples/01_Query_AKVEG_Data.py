@@ -26,7 +26,7 @@ drive = 'C:/'
 root_folder = 'ACCS_Work'
 
 # Define input folders (modify to your folder structure)
-database_repository = os.path.join(drive, root_folder, 'Repositories/akveg-database-public')
+database_repository = os.path.join(drive, root_folder, 'Repositories/akveg-database')
 credentials_folder = os.path.join(drive, root_folder, 'Example/Credentials/akveg_public_read')
 input_folder = os.path.join(drive, root_folder, 'Example/Data_Input')
 output_folder = os.path.join(input_folder, 'plot_data')
