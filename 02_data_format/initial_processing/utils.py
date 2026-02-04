@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # utils.py
 # Author: Amanda Droghini
-# Last Updated: 2026-01-29
+# Last Updated: 2026-02-04
 # ---------------------------------------------------------------------------
 
 """
@@ -91,15 +91,16 @@ def get_template(
             Returns:
                 A Polars DataFrame of the template schema.
             """
-
+    # Standardize code
+    clean_code = template_code.replace(" ", "_").replace("-", "_").lower()
     # Retrieve file path associated with template code
-    template_path = TEMPLATE_MAP.get(template_code.lower())
+    template_path = TEMPLATE_MAP.get(clean_code)
 
     if template_path is None:
         raise ValueError(f"Table '{template_code}' not found. Available: {list(TEMPLATE_MAP.keys())}")
 
     # Apply schema overrides if they exist and return template table
-    overrides = SCHEMA_OVERRIDES.get(template_code, {})
+    overrides = SCHEMA_OVERRIDES.get(clean_code, {})
     return pl.read_excel(template_path, schema_overrides=overrides)
 
 
