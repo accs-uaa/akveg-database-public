@@ -304,7 +304,7 @@ def get_taxonomy(
         taxonomy_accepted = (
             taxonomy_original.filter(pl.col("taxon_code") == pl.col("taxon_accepted_code"))
             .rename({"taxon_name": "name_accepted"})
-            .drop("taxon_code")
+            .select("taxon_accepted_code", "name_accepted")
         )
 
         # 5. Include accepted name in synonymized checklist
