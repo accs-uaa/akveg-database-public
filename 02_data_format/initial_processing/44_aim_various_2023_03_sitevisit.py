@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------------
 # Format Site Table for BLM AIM Various 2023 data
-# Author: Amanda Droghini, Alaska Center for Conservation
+# Author: Amanda Droghini, Alaska Center for Conservation Science
 # Last Updated: 2025-10-29
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Format Site Visit Table for BLM AIM Various 2023 data" formats information about site visits for

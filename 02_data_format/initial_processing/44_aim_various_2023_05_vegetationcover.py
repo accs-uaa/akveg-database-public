@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------------
 # Format Vegetation Cover Table for BLM AIM Various 2023 data
-# Author: Amanda Droghini, Alaska Center for Conservation
+# Author: Amanda Droghini, Alaska Center for Conservation Science
 # Last Updated: 2025-11-03
 # Usage: Must be executed in a Python 3.13+ distribution.
 # Description: "Format Vegetation Cover Table for BLM AIM Various 2023 data" uses data from line-point intercept surveys
