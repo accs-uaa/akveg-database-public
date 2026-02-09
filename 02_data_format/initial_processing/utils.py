@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # utils.py
 # Author: Amanda Droghini
-# Last Updated: 2026-02-04
+# Last Updated: 2026-02-05
 # ---------------------------------------------------------------------------
 
 """
@@ -258,7 +258,8 @@ def plot_survey_dates(
 
 # --- Function 4 ---
 def get_taxonomy(
-        credential_file: str = CREDENTIAL_FILE
+        credential_file: str = CREDENTIAL_FILE,
+        simple: bool = False
 ) -> Union[pl.DataFrame, None]:
     """
     Queries the AKVEG Database taxonomy table.
@@ -310,6 +311,10 @@ def get_taxonomy(
         # 5. Include accepted name in synonymized checklist
         taxonomy_akveg = (taxonomy_original.join(taxonomy_accepted, on='taxon_accepted_code', how='left')
                           )
+
+        # 6. Drop 'extra' columns if simple = True
+        if simple is True:
+            taxonomy_akveg = taxonomy_akveg.select("taxon_code", "taxon_name")
 
         return taxonomy_akveg
 
