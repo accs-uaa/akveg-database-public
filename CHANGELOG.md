@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the AKVEG Database will be documented in this file.
+All changes to the AKVEG Database will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses a [custom versioning 
 system](#versioning-system).
@@ -11,6 +11,14 @@ system](#versioning-system).
 
 * **yukon_biophysical_2020**: Replaces yukon_biophysical_2015 and yukon_landcover_2016 (previously private, now 
   public). Add Project, Site, Site Visit, and Vegetation Cover.
+
+## [2.4.0] - 2026-02-09
+
+### Added
+* **nrcs_soils_2024** [private]: Added Environment table.
+
+### Fixed
+* **fws_tetlin_2024**: Reconciled 1 unknown plant code for site visit code TET24_058_20240829.
 
 ## [2.3.0] - 2026-01-24
 
