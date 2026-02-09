@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Combine data tables
 # Author: Timm Nawrocki, Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2025-10-28
+# Last Updated: 2026-02-09
 # Usage: Script should be executed in R 4.5.1+.
 # Description: "Combine data tables" combines data from processed datasets into single CSV files. The CSV files can then be converted into a SQL statement for upload to the AKVEG database. The script requires metadata tables to be inserted into the AKVEG Database.
 # ---------------------------------------------------------------------------
@@ -27,7 +27,7 @@ data_folder = path(drive,
                    root_folder,
                    'Data/Data_Plots')
 repository_folder = path(drive,
-                         'ACCS_Work/Repositories/akveg-database-public')
+                         'ACCS_Work/Repositories/akveg-database')
 credential_folder = path(drive, root_folder, 'Credentials')
 
 # Define files ----
