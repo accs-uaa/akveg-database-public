@@ -1,3 +1,17 @@
+"""
+Taxonomy Utilities Module
+
+A collection of Polars-based tools for processing and validating taxonomic data.
+
+Functions:
+1. generate_taxon_codes: Standardizes taxonomic short codes into 6+ character codes.
+2. fix_duplicate_codes: Resolves duplicate taxonomic codes by adding sequential numbers to the end of duplicate
+codes.
+3. final_cleanup: Normalizes whitespaces, including NBSP spaces, and checks for null values.
+
+Note: This module assumes a unique 'taxon_name' column exists.
+"""
+
 import polars as pl
 
 # ---- Function 1 ----
