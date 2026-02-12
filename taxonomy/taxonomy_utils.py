@@ -112,7 +112,7 @@ def fix_duplicate_codes(taxon_df: pl.DataFrame) -> pl.DataFrame:
         print("Duplicate values found in 'taxon_code' column.")
         print(review_needed_code.select(["taxon_name", "taxon_code"]))
     else:
-        print("All taxon code are unique.")
+        print("All taxon codes are unique.")
 
     return processed_df
 
@@ -149,6 +149,15 @@ def final_cleanup(taxon_df: pl.DataFrame) -> pl.DataFrame:
         with pl.Config() as cfg:
             cfg.set_tbl_cols(16)
             print(null_cols.null_count())
+
+    # Ensure taxon_name and taxon_code columns are unique
+    duplicate_mask = pl.col('taxon_code').is_duplicated() | pl.col('taxon_name').is_duplicated()
+    duplicates_df = cleaned_df.filter(duplicate_mask).select(['taxon_code', 'taxon_name'])
+    total_duplicates = duplicates_df.height
+
+    if total_duplicates > 0:
+        print(f"WARNING: {total_duplicates} rows with duplicate values detected.")
+        print(duplicates_df)
 
     return cleaned_df
 
