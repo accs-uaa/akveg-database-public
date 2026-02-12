@@ -47,6 +47,22 @@ taxonomy_original.extend(yukon_codes)
 # Correct duplicate codes
 taxonomy_unique = tx.fix_duplicate_codes(taxonomy_original)
 
+# Manually fix remaining duplicate codes
+## Need to write a function to re-populate taxon code for all taxa
+taxonomy_unique = (taxonomy_unique.with_columns(pl.col('taxon_name').str.to_lowercase()
+                                                .str.slice(offset=0, length=7).alias('temp_code'))
+                   .with_columns(pl.when(pl.col('taxon_code')
+                                         .str.starts_with('hesper'))
+                                 .then(pl.lit(1))
+                                 .otherwise(pl.col('code_manual'))
+                                 .alias('code_manual'),
+                                 pl.when(pl.col('taxon_code')
+                                         .str.starts_with('hesper'))
+                                 .then(pl.col('temp_code'))
+                                 .otherwise('taxon_code')
+                                 .alias('taxon_code'))
+                   )
+
 # Perform final clean-up + null check
 taxonomy_final = tx.final_cleanup(taxonomy_unique)
 
