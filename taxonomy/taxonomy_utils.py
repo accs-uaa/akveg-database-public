@@ -97,16 +97,24 @@ def fix_duplicate_codes(taxon_df: pl.DataFrame) -> pl.DataFrame:
                  .drop(['counter','code_length'])
 )
     # Report any infraspecies duplicate for which the logic still needs to be coded
-    review_needed = processed_df.filter(pl.col("taxon_code") == "MANUAL_REVIEW")
+    review_needed_infra = processed_df.filter(pl.col("taxon_code") == "MANUAL_REVIEW")
 
-    if not review_needed.is_empty():
+    if not review_needed_infra.is_empty():
         print("Infraspecies duplicates detected; logic undefined.")
-        print(review_needed.select(["taxon_name", "taxon_code"]))
+        print(review_needed_infra.select(["taxon_name", "taxon_code"]))
     else:
         print("No infraspecies duplicates found.")
 
-    return processed_df
+    # Report any codes that are still duplicated (internal trouble-shooting)
+    review_needed_code = processed_df.filter(pl.col("taxon_code").is_duplicated())
 
+    if not review_needed_code.is_empty():
+        print("Duplicate values found in 'taxon_code' column.")
+        print(review_needed_code.select(["taxon_name", "taxon_code"]))
+    else:
+        print("All taxon code are unique.")
+
+    return processed_df
 
 # ---- Function 3 ----
 def final_cleanup(taxon_df: pl.DataFrame) -> pl.DataFrame:
