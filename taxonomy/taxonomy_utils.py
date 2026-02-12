@@ -80,7 +80,7 @@ def fix_duplicate_codes(taxon_df: pl.DataFrame) -> pl.DataFrame:
                                .alias('code_length'))
                  ## Append counter to taxon code for duplicate codes only
                  .with_columns(pl.when(pl.col('taxon_code')
-                                       .is_duplicated() & pl.col('code_length') == 6)
+                                       .is_duplicated() & pl.col('code_length') <= 6)
                                .then(pl.concat_str([pl.col("taxon_code"),
                                                    pl.col('counter')]))
                                .when(pl.col('taxon_code')
