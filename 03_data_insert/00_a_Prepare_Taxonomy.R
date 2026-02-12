@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Prepare taxonomic data for upload
 # Author: Timm Nawrocki, Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2025-08-14
+# Last Updated: 2026-02-12
 # Usage: Script should be executed in R 4.5.1+.
 # Description: "Prepare taxonomic data for upload" parses taxonomy data into a SQL query for upload into empty tables.
 # ---------------------------------------------------------------------------
@@ -134,6 +134,8 @@ hierarchy_table = taxonomy_data %>%
            taxon_status == 'taxonomy unresolved' |
            taxon_status == 'location unresolved' |
            taxon_status == 'adjacent Yukon' |
+           taxon_status == 'adjacent BC' |
+           taxon_status == 'adjacent Canada' |
            taxon_status == 'ephemeral non-native') %>%
   distinct(taxon_accepted, .keep_all = TRUE) %>%
   left_join(family_table, by = 'taxon_family') %>%
@@ -155,6 +157,7 @@ accepted_table = taxonomy_data %>%
            taxon_status == 'location unresolved' |
            taxon_status == 'adjacent Yukon' |
            taxon_status == 'adjacent BC' |
+           taxon_status == 'adjacent Canada' |
            taxon_status == 'ephemeral non-native') %>%
   separate(taxon_accepted, c('taxon_genus'), extra = 'drop', sep = '([ ])', remove = FALSE) %>%
   mutate(join_name = case_when(taxon_level == 'functional group' |
