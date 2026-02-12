@@ -68,34 +68,34 @@ def fix_duplicate_codes(taxon_df: pl.DataFrame) -> pl.DataFrame:
 
     # Fix duplicate codes
     processed_df = (taxon_df
-                 .sort("taxon_name")
-                 ## Create a counter for taxon codes
-                 .with_columns(pl.col('taxon_code')
-                               .cum_count()
-                               .over("taxon_code")
-                               .cast(pl.String)
-                               .alias('counter'),
-                               pl.col("taxon_code")
-                               .str.len_chars()
-                               .alias('code_length'))
-                 ## Append counter to taxon code for duplicate codes only
-                 .with_columns(pl.when(pl.col('taxon_code')
-                                       .is_duplicated() & pl.col('code_length') <= 6)
-                               .then(pl.concat_str([pl.col("taxon_code"),
-                                                   pl.col('counter')]))
-                               .when(pl.col('taxon_code')
-                                       .is_duplicated() & pl.col('code_length') > 6)
-                               ## Placeholder for infraspecies error
-                               .then(pl.lit("MANUAL_REVIEW"))
-                               .otherwise(pl.col('taxon_code'))
-                               .alias("taxon_code"))
-                ## Populate 'code_manual' column
-                .with_columns(pl.when(pl.col('taxon_code') == "MANUAL_REVIEW")
-                              .then(pl.lit(1))
-                              .otherwise(pl.lit(0))
-                              .alias('code_manual'))
-                 .drop(['counter','code_length'])
-)
+                    .sort("taxon_name")
+                    ## Create a counter for taxon codes
+                    .with_columns(pl.col('taxon_code')
+                                  .cum_count()
+                                  .over("taxon_code")
+                                  .cast(pl.String)
+                                  .alias('counter'),
+                                  pl.col("taxon_code")
+                                  .str.len_chars()
+                                  .alias('code_length'))
+                    ## Identify duplicate codes
+                    .with_columns(pl.col('taxon_code').len().over("taxon_code").alias('group_length'))
+                    ## Append counter to taxon code for duplicate codes only
+                    .with_columns(pl.when((pl.col('group_length') > 1) & (pl.col('code_length') <= 6))
+                                  .then(pl.concat_str([pl.col("taxon_code"),
+                                                       pl.col('counter')]))
+                                  .when((pl.col('group_length') > 1) & (pl.col('code_length') > 6))
+                                  ## Placeholder for infraspecies error
+                                  .then(pl.lit("MANUAL_REVIEW"))
+                                  .otherwise(pl.col('taxon_code'))
+                                  .alias("taxon_code"))
+                    ## Populate 'code_manual' column
+                    .with_columns(pl.when(pl.col('taxon_code') == "MANUAL_REVIEW")
+                                  .then(pl.lit(1))
+                                  .otherwise(pl.lit(0))
+                                  .alias('code_manual'))
+                    .drop(['counter', 'code_length', 'group_length'])
+                    )
     # Report any infraspecies duplicate for which the logic still needs to be coded
     review_needed_infra = processed_df.filter(pl.col("taxon_code") == "MANUAL_REVIEW")
 
