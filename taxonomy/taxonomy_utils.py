@@ -111,8 +111,6 @@ def fix_duplicate_codes(taxon_df: pl.DataFrame) -> pl.DataFrame:
     if not review_needed_code.is_empty():
         print("Duplicate values found in 'taxon_code' column.")
         print(review_needed_code.select(["taxon_name", "taxon_code"]))
-    else:
-        print("All taxon codes are unique.")
 
     return processed_df
 
