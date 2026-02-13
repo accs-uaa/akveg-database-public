@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # "Format Vegetation Cover for Yukon Biophysical Inventory System Plots"
 # Author: Amanda Droghini, Alaska Center for Conservation Science
-# Last Updated: 2025-10-02
+# Last Updated: 2026-02-11
 # Usage: Must be executed in R version 4.5.1+.
 # Description: "Format Vegetation Cover for Yukon Biophysical Inventory System Plots" formats vegetation cover data for ingestion into the AKVEG Database. The script appends unique site visit identifiers, corrects taxonomic names using the AKVEG comprehensive checklist, and enforces formatting to match the AKVEG template. The output is a CSV table that can be converted and included in a SQL INSERT statement.
 # ---------------------------------------------------------------------------
@@ -29,7 +29,7 @@ template_folder <- path(project_folder, "Data", "Data_Entry")
 source_folder <- path(plot_folder, "source", "ECLDataForAlaska_20240919", "YBIS_Data")
 
 # Set repository directory
-repository_folder <- path(drive, root_folder, "Repositories", "akveg-database-public")
+repository_folder <- path(drive, root_folder, "Repositories", "akveg-database")
 
 # Set credentials directory
 credential_folder <- path(project_folder, "Credentials", "akveg_public_read")
