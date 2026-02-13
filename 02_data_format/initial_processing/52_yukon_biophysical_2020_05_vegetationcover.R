@@ -108,7 +108,10 @@ veg_taxa <- veg_data %>%
     name_original == "Deschampsia caespitosa" ~ "Deschampsia cespitosa",
     .default = name_original
   )) %>%
-  filter(name_original != "Unspecified" & name_original != "Fungus" & Veg.stratum.cd != "NV" & name_original != "Temporarily unidentified") ##  Remove non-plant codes
+  filter(name_original != "Unspecified" 
+         & name_original != "Fungus" 
+         & Veg.stratum.cd != "NV" 
+         & name_original != "Temporarily unidentified") ##  Remove non-plant codes
 
 # Join with AKVEG Checklist
 veg_taxa <- veg_taxa %>%
@@ -117,47 +120,32 @@ veg_taxa <- veg_taxa %>%
 # Address codes without a match
 veg_taxa <- veg_taxa %>%
   mutate(name_adjudicated = case_when(name_original == "Poaceae" ~ "grass (Poaceae)",
-    name_original == "Alnus alnobetula ssp. crispa" ~ "Alnus alnobetula ssp. fruticosa",
     grepl("^Alopecurus", Scientific.name) & is.na(name_adjudicated) ~ "Alopecurus",
-    name_original == "Andromeda polifolia var. polifolia" ~ "Andromeda polifolia",
-    name_original == "Artemisia canadensis" ~ "Artemisia borealis",
-    name_original == "Artemisia norvegica" ~ "Artemisia arctica",
-    name_original == "Artemisia rupestris" ~ "Artemisia woodii",
-    name_original == "Astragalus adsurgens" ~ "Astragalus laxmannii",
     name_original == "Astragalus eucosmus ssp. eucosmus" ~ "Astragalus eucosmus",
-    name_original == "Betula x dugleana" ~ "Betula cf. occidentalis",
     name_original == "Bromus carinatus" ~ "grass (Poaceae)",
     name_original == "Cardamine oligosperma" ~ "Cardamine umbellata",
     name_original == "Carex x flavicans" ~ "Carex subspathacea",
     name_original == "Chrysanthemum" ~ "forb",
-    name_original == "Cratoneuron arcticum" ~ "Hygroamblystegium varium",
     name_original == "Cryptogramma crispa var." ~ "Cryptogramma acrostichoides",
-    name_original == "Draba alpina" ~ "Draba",
     name_original == "Dryas octopetala" ~ "Dryas ajanensis ssp. beringensis",
     grepl("Elyhordeum", Scientific.name) & is.na(name_adjudicated) ~ "grass (Poaceae)",
-    name_original == "Eriophorum vaginatum ssp. vaginatum" ~ "Eriophorum vaginatum",
     name_original == "Galium labradoricum" ~ "Galium",
-    name_original %in% c("Lagotis glauca ssp. minor", "Lagotis stelleri") ~ "Lagotis glauca ssp. lanceolata",
-    name_original == "Minuartia" ~ "forb",
-    name_original == "Myriophyllum spicatum" ~ "Myriophyllum sibiricum",
     name_original == "Melandrium apetalum" ~ "Silene uralensis",
+    name_original == "Minuartia" ~ "forb",
     name_original == "Oxytropis borealis var. hudsonica" ~ "Oxytropis borealis",
-    name_original == "Oxytropis nigrescens ssp. nigrescens" ~ "Oxytropis bryophila",
     name_original == "Pedicularis sudetica" ~ "Pedicularis",
     name_original == "Poa alpina ssp. vivipara" ~ "Poa alpina var. alpina",
     name_original == "Potentilla egedii" ~ "Potentilla anserina ssp. groenlandica",
+    name_original == "Potentilla uniflora" ~ "Potentilla vulcanicola",
     name_original == "Ranunculus gmelinii var. gmelinii" ~ "Ranunculus gmelinii ssp. gmelinii",
     name_original == "Salix arctica ssp. arctica" ~ "Salix arctica",
     name_original == "Salix brachycarpa" ~ "Salix niphoclada",
     name_original == "Saxifraga bronchialis" ~ "Saxifraga funstonii",
-    name_original == "Saxifraga davurica" ~ "Micranthes",
     name_original == "Scirpus caespitosus" ~ "Trichophorum cespitosum",
     name_original == "Silene acaulis ssp. acaulis" ~ "Silene acaulis",
-    name_original == "Taraxacum lyratum" ~ "Taraxacum scopulorum",
-    name_original == "Xanthoria" ~ "lichen",
-    name_original == "Vaccinium microcarpum" ~ "Oxycoccus microcarpus",
     name_original == "Vaccinium oxycoccos" ~ "Oxycoccus microcarpus",
     name_original == "Xanthoparmelia chlorochroa" ~ "Xanthoparmelia",
+    name_original == "Xanthoria" ~ "lichen",
     .default = name_adjudicated
   ))
 
