@@ -14,6 +14,24 @@ Note: This module assumes a unique 'taxon_name' column exists.
 
 import polars as pl
 
+# Define columns for final output
+FINAL_SCHEMA = ['taxon_code',
+                'code_manual',
+                'taxon_name',
+                'taxon_author',
+                'taxon_status',
+                'taxon_accepted',
+                'taxon_author_accepted',
+                'taxon_family',
+                'taxon_source',
+                'taxon_link',
+                'taxon_level',
+                'taxon_category',
+                'taxon_habit',
+                'taxon_native',
+                'taxon_non_native',
+                'org']
+
 # ---- Function 1 ----
 def generate_taxon_codes(taxon_df: pl.DataFrame) -> pl.DataFrame:
     """
@@ -135,6 +153,8 @@ def final_cleanup(taxon_df: pl.DataFrame) -> pl.DataFrame:
         .filter(~pl.all_horizontal(pl.all().is_null()))
         # Sort by taxon name
         .sort("taxon_name")
+        # Select template columns
+        .select(FINAL_SCHEMA)
     )
 
     # Ensure there are no null values in the df
