@@ -98,8 +98,8 @@ system](#versioning-system).
 We use a MAJOR.MINOR.PATCH versioning system where we increment the:
 
 1. MAJOR version when we change the database schema.
-2. MINOR version for all other changes, including adding, removing, or modifying datasets.
-3. PATCH version for changes to the database that do not substantially alter its structure e.g.,
+2. MINOR version for changes related to datasets, including adding, removing, or modifying datasets.
+3. PATCH version for changes to the database schema or dictionary that do not substantially alter its structure e.g.,
    adding a constrained value, adding or modifying a descriptive field.
 
 We began this change log on 2025-07-19. At that date, we were on schema version 2.0. For simplicity's sake, we started 
