@@ -41,9 +41,6 @@ visit_input <- path(plot_folder, "03_sitevisit_yukonbiophysical2020.csv")
 veg_input <- path(source_folder, "Veg_2024Apr09.xlsx")
 template_input <- path(template_folder, "05_vegetation_cover.xlsx")
 
-# Define temporary taxonomy file
-taxonomy_yukon_input <- path(project_folder, "Taxonomy_Updates", "taxonomy_wc.xlsx")
-
 # Define output dataset
 veg_output <- path(plot_folder, "05_vegetationcover_yukonbiophysical2020.csv")
 
@@ -57,7 +54,6 @@ taxa_file <- path(repository_folder, "queries", "00_taxonomy.sql")
 visit_original <- read_csv(visit_input, col_select = c("site_code", "site_visit_code"))
 veg_original <- read_xlsx(veg_input, .name_repair = "universal") ## Ignore warnings
 template <- colnames(read_xlsx(path = template_input))
-taxonomy_yukon <- read_xlsx(taxonomy_yukon_input, sheet="taxonomy")
 
 # Connect to AKVEG Database ----
 
@@ -71,23 +67,13 @@ source(connection_script)
 # Connect to the AKVEG PostgreSQL database
 akveg_connection <- connect_database_postgresql(authentication)
 
-
 # Format taxonomy ----
 
 # Define query
-query_taxa <- read_file(taxa_file)
+query_taxa <- "SELECT taxon_name FROM taxon_all;"
 
 # Read SQL table as dataframe
-taxonomy_akveg <- as_tibble(dbGetQuery(akveg_connection, query_taxa))
-
-# Format YT taxonomy to match AKVEG query
-taxonomy_yukon <- taxonomy_yukon %>% 
-  rename(code_akveg = taxon_code) %>%
-  mutate(taxon_genus = "") %>% 
-  select(all_of(colnames(taxonomy_akveg)))
-
-# Combine taxonomic datasets
-taxonomy_all = rbind(taxonomy_akveg, taxonomy_yukon)
+taxonomy_original <- as_tibble(dbGetQuery(akveg_connection, query_taxa))
 
 # Append site visit code ----
 veg_data <- veg_original %>%
@@ -124,10 +110,9 @@ veg_taxa <- veg_data %>%
   )) %>%
   filter(name_original != "Unspecified" & name_original != "Fungus" & Veg.stratum.cd != "NV" & name_original != "Temporarily unidentified") ##  Remove non-plant codes
 
-# Join with AKVEG + Yukon Checklist
+# Join with AKVEG Checklist
 veg_taxa <- veg_taxa %>%
-  left_join(taxonomy_all, join_by("name_original" == "taxon_name")) %>%
-  rename(name_adjudicated = taxon_accepted)
+  left_join(taxonomy_original, by = join_by("name_original" == "taxon_name"), keep=TRUE)
 
 # Address codes without a match
 veg_taxa <- veg_taxa %>%
