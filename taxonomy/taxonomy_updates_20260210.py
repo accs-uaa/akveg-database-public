@@ -61,6 +61,7 @@ taxonomy_unique = (taxonomy_unique.with_columns(pl.col('taxon_name').str.to_lowe
                                  .then(pl.col('temp_code'))
                                  .otherwise('taxon_code')
                                  .alias('taxon_code'))
+                   .drop(pl.col('temp_code'))
                    )
 
 # Perform final clean-up + null check
