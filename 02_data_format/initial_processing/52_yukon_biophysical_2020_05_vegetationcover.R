@@ -128,7 +128,6 @@ veg_taxa <- veg_taxa %>%
     name_original == "Chrysanthemum" ~ "forb",
     name_original == "Cryptogramma crispa var." ~ "Cryptogramma acrostichoides",
     name_original == "Dryas octopetala" ~ "Dryas ajanensis ssp. beringensis",
-    grepl("Elyhordeum", Scientific.name) & is.na(name_adjudicated) ~ "grass (Poaceae)",
     name_original == "Galium labradoricum" ~ "Galium",
     name_original == "Melandrium apetalum" ~ "Silene uralensis",
     name_original == "Minuartia" ~ "forb",
