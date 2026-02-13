@@ -12,6 +12,12 @@ system](#versioning-system).
 * **yukon_biophysical_2020**: Replaces yukon_biophysical_2015 and yukon_landcover_2016 (previously private, now 
   public). Add Project, Site, Site Visit, and Vegetation Cover.
 
+## [2.4.1] - 2026-02-12
+
+### Added
+* 71 new taxonomic records, including 41 accepted species. These taxa need to exist in our 
+  taxonomy table before Canadian datasets can be added. Most occur in Canada, but not in Alaska.
+
 ## [2.4.0] - 2026-02-09
 
 ### Added
